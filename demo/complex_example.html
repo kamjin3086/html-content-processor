@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>A Complex HTML Example Page</title>
+    <meta name="keywords" content="test, filter, HTML, complex example">
+    <meta name="description" content="This page is used to test the effectiveness of the HTML content filter, containing various elements that should be filtered out.">
+    <link rel="stylesheet" href="irrelevant-styles.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f0f0f0; }
+        .hidden-by-css { display: none; }
+        .annoying-popup { position: fixed; top: 10px; right: 10px; background: yellow; padding: 5px; border: 1px solid black; z-index: 1000; }
+        /* More irrelevant styles */
+        .top-banner-ad { background-color: #ffcc00; padding: 10px; text-align: center; }
+        .main-container { max-width: 900px; margin: 20px auto; background: white; padding: 15px; }
+        .content-area { border: 1px solid #ddd; padding: 10px; }
+        .sidebar-junk { float: right; width: 200px; margin-left: 10px; background: #eee; padding: 8px; }
+        .footer-links { text-align: center; margin-top: 20px; font-size: 0.8em; }
+    </style>
+    <script src="tracking-script.js"></script>
+    <script>
+        // Useless script 1
+        function doNothing() {
+            console.log("This script does nothing useful and should be removed by a script filter if active.");
+            var x = 1 + 1;
+        }
+        // Another useless script
+        (function(){
+            var adShown = false;
+            // Simulate ad logic
+            if(!adShown) { /* ... potentially some ad display logic ... */ }
+        })();
+    </script>
+</head>
+<body>
+
+    <div class="annoying-popup" id="popup-ad-1">
+        Annoying popup ad! <button onclick="this.parentElement.style.display='none'">Close</button>
+    </div>
+
+    <header class="page-header-wrapper">
+        <div class="top-banner-ad" id="headerAd">
+            This is a top banner ad - Click to buy!
+        </div>
+        <nav class="main-navigation" role="navigation">
+            <ul>
+                <li><a href="#home">Home (dummy link)</a></li>
+                <li><a href="#products">Products (dummy link)</a></li>
+                <li><a href="#contact">Contact Us (dummy link)</a></li>
+                <li class="sidebar-menu-item"><a href="#promo">Special Promotion</a></li>
+            </ul>
+        </nav>
+        <h1>Main Website Title - But in Header</h1>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar-junk" id="rightSidebar">
+            <h3>Sidebar Ad Section</h3>
+            <p>Buy our amazing product! Guaranteed results!</p>
+            <div class="advert">
+                <a href="https://example.com/ad-click">
+                    <img src="ad-image.jpg" alt="Advertisement Image">
+                    <span>Limited time offer! Don't miss out!</span>
+                </a>
+            </div>
+            <div class="social-buttons">
+                <button>Share on Facebook</button>
+                <button>Share on Twitter</button>
+            </div>
+            <h4>Irrelevant List</h4>
+            <ul>
+                <li>Old news link 1</li>
+                <li>Old news link 2</li>
+            </ul>
+        </aside>
+
+        <main class="content-area" role="main">
+            <article id="main-article-content">
+                <h2>This is the Main Article Title</h2>
+                <p>This is an important introductory paragraph. We expect this text to be fully preserved. It includes some <strong>bold</strong> and <em>italic</em> text. HTML (HyperText Markup Language) is the standard markup language for creating web pages and web applications.</p>
+                
+                <div class="embedded-advertisement">
+                    <p>--- Embedded ad content within the article ---</p>
+                    <span>Subscribe to our newsletter now!</span>
+                    <form action="#" method="post">
+                        <input type="email" placeholder="Enter your email">
+                        <button type="submit">Subscribe</button>
+                    </form>
+                </div>
+
+                <h3>Subsection Title 1: Technical Details</h3>
+                <p>Detailed explanation of some technical concepts. The filter should recognize the importance of this content. Link density test: <a href="https://link1.example.com">Link 1</a>, <a href="https://link2.example.com">Link 2</a>, <a href="https://link3.example.com">Link 3</a>, <a href="https://link4.example.com">Link 4</a>, <a href="https://link5.example.com">Link 5</a>, <a href="https://link6.example.com">Link 6</a>, <a href="https://link7.example.com">Link 7</a>. This paragraph has very high link density.</p>
+                
+                <p>Another paragraph with mixed Chinese and English. This paragraph has enough words. HTML filter is designed to prune irrelevant content. This filter is designed to trim irrelevant content.</p>
+
+                <div class="comment-section-placeholder">
+                    <h4>User Comments Section</h4>
+                    <p>User A: Well written!</p>
+                    <p>User B: I don't think so.</p>
+                </div>
+
+                <ul>
+                    <li>Important list item 1</li>
+                    <li>Important list item 2, containing a <a href="https://example.com/useful-link">useful link</a></li>
+                    <li>
+                        Important list item 3, with nested links:
+                        <a href="#outer">Outer link <span class="promo-text">(Special Offer!)</span>
+                            <a href="#inner">Inner link</a>
+                        </a>
+                    </li>
+                </ul>
+
+                <section class="sub-article">
+                    <h4>Deeper Content</h4>
+                    <p>This is another meaningful block of text that should be preserved. Here are some code snippets <code>const x = 10;</code> that should be kept.</p>
+                    <pre><code>
+// This is an example code block
+function greet(name) {
+    return "Hello, " + name + "!";
+}
+                    </code></pre>
+                </section>
+                <div class="ads banner">Banner Ad - Appears Again</div>
+            </article>
+            
+            <!-- Some useless empty tags or tags with only whitespace -->
+            <div> </div>
+            <span>&nbsp;&nbsp;&nbsp;</span>
+            <p></p>
+
+        </main>
+    </div>
+    
+
+    <footer class="page-footer-wrapper">
+        <div class="footer-links" id="footerLinks">
+            <a href="#about">About Us</a> |
+            <a href="#privacy">Privacy Policy</a> |
+            <a href="#terms">Terms of Service</a> |
+            <a href="#sitemap">Sitemap</a>
+            <span class="copyright-info">© 2024 Test Company. All rights reserved.</span>
+        </div>
+        <script>
+            // Footer script, potentially for analytics or widgets
+            console.log("Footer script executed.");
+        </script>
+    </footer>
+
+    <!-- More useless scripts -->
+    <script src="analytics.js" async defer></script>
+    <script>
+        // Ensure page is fully loaded
+        // This is generally harmless but might be considered "non-content" script
+        document.addEventListener('DOMContentLoaded', function() {
+            // console.log('Complex example fully loaded and parsed.');
+        });
+    </script>
+</body>
+</html> 

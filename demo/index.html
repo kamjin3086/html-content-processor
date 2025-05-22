@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML Filter and Markdown Converter Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .panel {
+      flex: 1;
+      min-width: 300px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .panel-header {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    textarea, .output-container {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 14px;
+      line-height: 1.4;
+      overflow: auto;
+      resize: vertical;
+    }
+    .output-container {
+      background-color: #f9f9f9;
+      white-space: pre-wrap;
+    }
+    .button-group {
+      margin: 15px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #3e8e41;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+      padding: 10px;
+      background-color: #ffeeee;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .success {
+      color: green;
+      padding: 10px;
+      background-color: #eeffee;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    #status {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      border-bottom: none;
+      margin-bottom: -1px;
+      background-color: #f1f1f1;
+      border-radius: 4px 4px 0 0;
+    }
+    .tab.active {
+      background-color: white;
+      border-color: #ccc;
+      border-bottom-color: white;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .version-info {
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .examples {
+      margin-top: 15px;
+    }
+    .example-btn {
+      background-color: #3498db;
+      margin-right: 5px;
+    }
+    .example-btn:hover {
+      background-color: #2980b9;
+    }
+    .source-view {
+      margin-top: 10px;
+      font-size: 12px;
+    }
+    .source-link {
+      color: #3498db;
+      text-decoration: none;
+    }
+    .source-link:hover {
+      text-decoration: underline;
+    }
+    .debug-btn {
+      background-color: #9C27B0;
+    }
+    .debug-btn:hover {
+      background-color: #7B1FA2;
+    }
+    .debug-info {
+      margin-top: 10px;
+      padding: 8px;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .comparison {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .comparison-panel {
+      flex: 1;
+      min-width: 300px;
+      border: 1px solid #eee;
+      padding: 10px;
+    }
+    .comparison-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    
+    /* Styles for Markdown view */
+    .markdown-view {
+      margin-top: 15px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+    }
+    .markdown-view h1 {
+      font-size: 1.8em;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.3em;
+    }
+    .markdown-view h2 {
+      font-size: 1.5em;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
+    .markdown-view h3 {
+      font-size: 1.2em;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
+    .markdown-view p {
+      margin: 0.5em 0;
+    }
+    .markdown-view ul {
+      padding-left: 2em;
+      margin: 0.5em 0;
+    }
+    .markdown-view li {
+      margin: 0.3em 0;
+    }
+    .markdown-view a {
+      color: #0366d6;
+      text-decoration: none;
+    }
+    .markdown-view a:hover {
+      text-decoration: underline;
+    }
+    .markdown-view strong {
+      font-weight: bold;
+    }
+    .markdown-view em {
+      font-style: italic;
+    }
+    .fragment-item {
+      margin-bottom: 15px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .fragment-header {
+      background-color: #f5f5f5;
+      padding: 5px 10px;
+      font-weight: bold;
+      border-bottom: 1px solid #eee;
+    }
+    .fragment-item pre {
+      margin: 0;
+      padding: 10px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <h1>HTML Filter and Markdown Converter Demo</h1>
+
+  <div class="container">
+    <div class="panel">
+      <div class="panel-header">Input HTML</div>
+      <textarea id="htmlInput" placeholder="Enter HTML here..."></textarea>
+      <div class="examples">
+        <button class="example-btn" onclick="loadExample('simple')">Simple Example</button>
+        <button class="example-btn" onclick="loadExample('complex')">Complex Example</button>
+        <button class="example-btn" onclick="loadExample('article')">Article Example</button>
+        <button class="example-btn" onclick="loadExample('table')">Table Example</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">Settings</div>
+      <!-- Add settings controls here if needed -->
+      <p>Settings for filtering and conversion can be configured in the code. This demo uses default or pre-set configurations for simplicity.</p>
+       <label for="baseUrlInput">Base URL (for relative links):</label>
+       <input type="text" id="baseUrlInput" placeholder="e.g., https://example.com/path" style="width: calc(100% - 22px); padding: 8px; margin-bottom:10px; border: 1px solid #ccc; border-radius: 4px;">
+    </div>
+  </div>
+
+  <div class="button-group">
+    <button onclick="performFilter('array')">Filter to Array</button>
+    <button onclick="performFilter('string')">Filter to String</button>
+    <button onclick="performMarkdownConversion('full')">HTML to Markdown (Full)</button>
+    <button onclick="performMarkdownConversion('citations')">HTML to Markdown (with Citations)</button>
+    <button onclick="performMarkdownConversion('plain')">HTML to Plain Markdown</button>
+    <button onclick="performMarkdownConversion('fit')">HTML to Fit Markdown</button>
+    <button class="debug-btn" onclick="performDebugComparison()">Debug Comparison</button>
+
+  </div>
+
+  <div id="status"></div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="openTab(event, 'rawMarkdownTab')">Raw Markdown</div>
+    <div class="tab" onclick="openTab(event, 'markdownWithCitationsTab')">Markdown with Citations</div>
+    <div class="tab" onclick="openTab(event, 'referencesMarkdownTab')">References</div>
+    <div class="tab" onclick="openTab(event, 'fitMarkdownTab')">Fit Markdown</div>
+    <div class="tab" onclick="openTab(event, 'fitHtmlTab')">Fit HTML</div>
+    <div class="tab" onclick="openTab(event, 'filteredStringTab')">Filtered String</div>
+    <div class="tab" onclick="openTab(event, 'filteredArrayTab')">Filtered Array</div>
+    <div class="tab" onclick="openTab(event, 'debugComparisonTab')">Debug Comparison</div>
+  </div>
+
+  <div id="rawMarkdownTab" class="tab-content active">
+    <div class="panel-header">Raw Markdown Output</div>
+    <div id="rawMarkdownOutput" class="output-container"></div>
+    <div class="markdown-view" id="rawMarkdownPreview"></div>
+  </div>
+
+  <div id="markdownWithCitationsTab" class="tab-content">
+    <div class="panel-header">Markdown with Citations Output</div>
+    <div id="markdownWithCitationsOutput" class="output-container"></div>
+    <div class="markdown-view" id="markdownWithCitationsPreview"></div>
+  </div>
+
+  <div id="referencesMarkdownTab" class="tab-content">
+    <div class="panel-header">References Markdown Output</div>
+    <div id="referencesMarkdownOutput" class="output-container"></div>
+    <div class="markdown-view" id="referencesMarkdownPreview"></div>
+  </div>
+
+  <div id="fitMarkdownTab" class="tab-content">
+    <div class="panel-header">Fit Markdown Output</div>
+    <div id="fitMarkdownOutput" class="output-container"></div>
+    <div class="markdown-view" id="fitMarkdownPreview"></div>
+  </div>
+
+  <div id="fitHtmlTab" class="tab-content">
+    <div class="panel-header">Fit HTML Output (Filtered HTML)</div>
+    <div id="fitHtmlOutput" class="output-container"></div>
+  </div>
+
+  <div id="filteredStringTab" class="tab-content">
+    <div class="panel-header">Filtered HTML (String)</div>
+    <div id="filteredStringOutput" class="output-container"></div>
+  </div>
+  
+  <div id="filteredArrayTab" class="tab-content">
+    <div class="panel-header">Filtered HTML (Array of Fragments)</div>
+    <div id="filteredArrayOutput" class="output-container">
+        <!-- Fragments will be dynamically added here -->
+    </div>
+  </div>
+
+  <div id="debugComparisonTab" class="tab-content">
+    <div class="panel-header">Debug Comparison Output</div>
+    <div id="debugInfoOutput" class="debug-info">
+      Stats will appear here after running debug comparison.
+    </div>
+    <div class="comparison">
+        <div class="comparison-panel">
+            <div class="comparison-title">Original HTML</div>
+            <div id="originalHtmlDebug" class="output-container"></div>
+        </div>
+        <div class="comparison-panel">
+            <div class="comparison-title">Filtered HTML</div>
+            <div id="filteredHtmlDebug" class="output-container"></div>
+        </div>
+    </div>
+  </div>
+
+  <div class="version-info">
+    HTML Filter Strategy Demo - Version: <span id="versionDisplay"></span>
+    <div class="source-view">
+      <a href="https://github.com/kamjin3086/html-filter-strategy" target="_blank" class="source-link">View Source on GitHub</a>
+    </div>
+  </div>
+
+  <script>
+    // Ensure htmlFilter is loaded (assuming it's available globally or via import)
+    const api = window.htmlFilter;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (api && api.version) {
+        document.getElementById('versionDisplay').textContent = api.version;
+      } else {
+         document.getElementById('versionDisplay').textContent = 'N/A (API not loaded)';
+      }
+      // Load simple example by default
+      loadExample('simple');
+      openTab(null, 'rawMarkdownTab'); // Ensure the first tab is active
+    });
+
+    function setStatus(message, type = 'info') {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      statusEl.className = type; // 'success', 'error', or 'info' (default styling)
+      if (type === 'error') console.error("Status:", message);
+      else if (type === 'success') console.log("Status:", message);
+      else console.log("Status:", message);
+    }
+
+    function getBaseUrl() {
+        return document.getElementById('baseUrlInput').value.trim();
+    }
+
+    function performFilter(type) {
+      if (!api) { setStatus('Error: API not loaded.', 'error'); return; }
+      const html = document.getElementById('htmlInput').value;
+      if (!html) { setStatus('Error: HTML input is empty.', 'error'); return; }
+      
+      setStatus('Filtering HTML...', 'info');
+      try {
+        let result;
+        if (type === 'array') {
+          result = api.filterHtmlToArray(html);
+          const outputEl = document.getElementById('filteredArrayOutput');
+          outputEl.innerHTML = ''; // Clear previous results
+          if (result && result.length > 0) {
+            result.forEach((fragment, index) => {
+                const item = document.createElement('div');
+                item.className = 'fragment-item';
+                const header = document.createElement('div');
+                header.className = 'fragment-header';
+                header.textContent = `Fragment ${index + 1}`;
+                const pre = document.createElement('pre');
+                pre.textContent = fragment;
+                item.appendChild(header);
+                item.appendChild(pre);
+                outputEl.appendChild(item);
+            });
+          } else {
+            outputEl.textContent = 'No content fragments returned.';
+          }
+          openTab(null, 'filteredArrayTab');
+        } else {
+          result = api.filterHtmlToString(html);
+          document.getElementById('filteredStringOutput').textContent = result;
+          openTab(null, 'filteredStringTab');
+        }
+        setStatus(`HTML filtering (${type}) successful.`, 'success');
+      } catch (e) {
+        setStatus(`Error during HTML filtering: ${e.message}`, 'error');
+      }
+    }
+
+    function performMarkdownConversion(type) {
+      if (!api) { setStatus('Error: API not loaded.', 'error'); return; }
+      const html = document.getElementById('htmlInput').value;
+      const baseUrl = getBaseUrl();
+      if (!html) { setStatus('Error: HTML input is empty.', 'error'); return; }
+
+      setStatus(`Converting HTML to ${type} Markdown...`, 'info');
+      try {
+        let result;
+        let activeTabId = 'rawMarkdownTab';
+        switch (type) {
+          case 'full':
+            result = api.htmlToMarkdown(html, {}, baseUrl, false); // No citations for "full"
+            document.getElementById('rawMarkdownOutput').textContent = result.rawMarkdown;
+            renderMarkdown('rawMarkdownPreview', result.rawMarkdown);
+            activeTabId = 'rawMarkdownTab';
+            break;
+          case 'citations':
+            result = api.htmlToMarkdownWithCitations(html, baseUrl);
+            // htmlToMarkdownWithCitations returns a string combining markdown and refs
+            // For display, we might want to call the main function to get them separate
+            const fullResultForCitations = api.htmlToMarkdown(html, {}, baseUrl, true);
+            document.getElementById('markdownWithCitationsOutput').textContent = fullResultForCitations.markdownWithCitations;
+            document.getElementById('referencesMarkdownOutput').textContent = fullResultForCitations.referencesMarkdown;
+            renderMarkdown('markdownWithCitationsPreview', fullResultForCitations.markdownWithCitations);
+            renderMarkdown('referencesMarkdownPreview', fullResultForCitations.referencesMarkdown);
+            activeTabId = 'markdownWithCitationsTab';
+            break;
+          case 'plain':
+            result = api.htmlToPlainMarkdown(html);
+            document.getElementById('rawMarkdownOutput').textContent = result;
+            renderMarkdown('rawMarkdownPreview', result);
+            activeTabId = 'rawMarkdownTab'; // Display in raw as it's plain
+            break;
+          case 'fit':
+            result = api.htmlToFitMarkdown(html, baseUrl);
+            const fitFullResult = api.htmlToMarkdown(html, {}, baseUrl, false); // Get fitHtml too
+            document.getElementById('fitMarkdownOutput').textContent = result; // fitMarkdown string
+            document.getElementById('fitHtmlOutput').textContent = fitFullResult.fitHtml;
+            renderMarkdown('fitMarkdownPreview', result);
+            activeTabId = 'fitMarkdownTab';
+            break;
+        }
+
+        // For types that return a string, we might want to populate all fields if appropriate
+        // For now, it primarily updates the specific target outputs.
+        // If 'result' is the MarkdownGenerationResult object, update all relevant fields
+        if (typeof result === 'object' && result.hasOwnProperty('rawMarkdown')) {
+            document.getElementById('rawMarkdownOutput').textContent = result.rawMarkdown;
+            document.getElementById('markdownWithCitationsOutput').textContent = result.markdownWithCitations;
+            document.getElementById('referencesMarkdownOutput').textContent = result.referencesMarkdown;
+            document.getElementById('fitMarkdownOutput').textContent = result.fitMarkdown;
+            document.getElementById('fitHtmlOutput').textContent = result.fitHtml;
+            
+            // Render previews
+            renderMarkdown('rawMarkdownPreview', result.rawMarkdown);
+            renderMarkdown('markdownWithCitationsPreview', result.markdownWithCitations);
+            renderMarkdown('referencesMarkdownPreview', result.referencesMarkdown);
+            renderMarkdown('fitMarkdownPreview', result.fitMarkdown);
+        } else if (typeof result === 'string') {
+            // If only a string was returned (e.g. for plain or fit), update the primary output
+            // This logic is partially handled in switch, but good to have a fallback
+            if(type === 'plain') {
+                document.getElementById('rawMarkdownOutput').textContent = result;
+                renderMarkdown('rawMarkdownPreview', result);
+            } else if (type === 'fit') {
+                 document.getElementById('fitMarkdownOutput').textContent = result;
+                 renderMarkdown('fitMarkdownPreview', result);
+                 // Potentially fetch fitHtml separately if not part of `result`
+                 const tempFullResult = api.htmlToMarkdown(html, {}, baseUrl, false);
+                 document.getElementById('fitHtmlOutput').textContent = tempFullResult.fitHtml;
+            } else if (type === 'citations') {
+                // This case is more complex as htmlToMarkdownWithCitations returns a combined string.
+                // The switch case already handles splitting this by calling htmlToMarkdown again.
+            }
+        }
+
+        openTab(null, activeTabId);
+        setStatus(`HTML to ${type} Markdown conversion successful.`, 'success');
+      } catch (e) {
+        setStatus(`Error during Markdown conversion: ${e.message}`, 'error');
+      }
+    }
+
+    function performDebugComparison() {
+        if (!api) { setStatus('Error: API not loaded.', 'error'); return; }
+        const html = document.getElementById('htmlInput').value;
+        if (!html) { setStatus('Error: HTML input is empty.', 'error'); return; }
+
+        setStatus('Performing debug comparison...', 'info');
+        try {
+            const comparisonResult = api.debugFilterComparison(html);
+            const outputEl = document.getElementById('debugInfoOutput');
+            if (comparisonResult.success) {
+                outputEl.innerHTML = 
+                    `<strong>Comparison Stats:</strong><br>
+                    Original Length: ${comparisonResult.originalLength}<br>
+                    Filtered Length: ${comparisonResult.filteredLength}<br>
+                    Reduction: ${comparisonResult.reductionPercent}%`;
+                document.getElementById('originalHtmlDebug').textContent = comparisonResult.original;
+                document.getElementById('filteredHtmlDebug').textContent = comparisonResult.filtered;
+                 setStatus('Debug comparison successful.', 'success');
+            } else {
+                outputEl.textContent = `Comparison failed: ${comparisonResult.error || 'Unknown error'}`;
+                 setStatus('Debug comparison failed.', 'error');
+            }
+           openTab(null, 'debugComparisonTab');
+        } catch (e) {
+            setStatus(`Error during debug comparison: ${e.message}`, 'error');
+        }
+    }
+
+    const exampleCache = {};
+
+    async function loadExample(name) {
+      setStatus(`Loading example: ${name}...`, 'info');
+      if (exampleCache[name]) {
+        document.getElementById('htmlInput').value = exampleCache[name];
+        setStatus(`Example '${name}' loaded from cache.`, 'success');
+        return;
+      }
+      try {
+        // Try to fetch from a local file first for complex_example.html
+        let exampleUrl = ``;
+        if (name === 'complex') {
+             exampleUrl = 'complex_example.html'; // Assumes it's in the same directory
+        } else if (name === 'simple') {
+            exampleCache[name] = `<h1>Simple Title</h1><p>This is a simple paragraph.</p><p>Another paragraph with a <a href="#">link</a>.</p><footer>Footer content to be removed.</footer>`;
+            document.getElementById('htmlInput').value = exampleCache[name];
+            setStatus(`Example '${name}' loaded.`, 'success');
+            return;
+        } else if (name === 'article') {
+            exampleCache[name] = `
+<article>
+  <h2>Article Title</h2>
+  <p>This is the first paragraph of an article. It contains some <em>emphasized</em> text and some <strong>strong</strong> text.</p>
+  <p>This is a second paragraph. It includes a <a href="https://example.com">link to an external site</a>.</p>
+  <nav>This navigation should be removed.</nav>
+  <figure>
+    <img src="image.jpg" alt="Sample Image">
+    <figcaption>This is a caption for the image.</figcaption>
+  </figure>
+  <p>A final paragraph with some <code>inline code</code>.</p>
+  <div class="ads">An ad that should be filtered out.</div>
+</article>`;
+            document.getElementById('htmlInput').value = exampleCache[name];
+            setStatus(`Example '${name}' loaded.`, 'success');
+            return;
+        } else if (name === 'table') {
+             exampleCache[name] = `
+<table>
+  <thead>
+    <tr><th>Header 1</th><th>Header 2</th><th>Header 3</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Data 1.1</td><td>Data 1.2</td><td>Data 1.3</td></tr>
+    <tr><td>Data 2.1</td><td>Data 2.2</td><td>Data 2.3</td></tr>
+  </tbody>
+</table>
+<p>Some text after the table.</p>`;
+            document.getElementById('htmlInput').value = exampleCache[name];
+            setStatus(`Example '${name}' loaded.`, 'success');
+            return;
+        }
+
+        if (exampleUrl) {
+            const response = await fetch(exampleUrl);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status} for ${exampleUrl}`);
+            const html = await response.text();
+            document.getElementById('htmlInput').value = html;
+            exampleCache[name] = html; // Cache it
+            setStatus(`Example '${name}' loaded successfully from ${exampleUrl}.`, 'success');
+        } else {
+            setStatus(`Example '${name}' is predefined or not found as a file.`, 'info');
+        }
+
+      } catch (e) {
+        setStatus(`Error loading example '${name}': ${e.message}`, 'error');
+        document.getElementById('htmlInput').value = `Error loading example: ${e.message}`;
+      }
+    }
+
+    function openTab(evt, tabName) {
+      let i, tabcontent, tablinks;
+      tabcontent = document.getElementsByClassName("tab-content");
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+      tablinks = document.getElementsByClassName("tab");
+      for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+      document.getElementById(tabName).style.display = "block";
+      if (evt && evt.currentTarget) {
+        evt.currentTarget.className += " active";
+      }
+    }
+
+    // Basic Markdown to HTML renderer for preview (very simplified)
+    // For a real-world scenario, use a library like Marked.js or Showdown.js
+    function renderMarkdown(elementId, markdown) {
+        const previewEl = document.getElementById(elementId);
+        if (!previewEl) return;
+
+        if (!markdown) {
+            previewEl.innerHTML = '<p><em>No content to preview.</em></p>';
+            return;
+        }
+
+        let html = markdown;
+        // This is a very naive and incomplete Markdown to HTML conversion
+        // Headers
+        html = html.replace(/^###### (.*$)/gim, '<h6>$1</h6>');
+        html = html.replace(/^##### (.*$)/gim, '<h5>$1</h5>');
+        html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
+        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+        // Bold
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/__(.*?)__/g, '<strong>$1</strong>');
+        // Italic
+        html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        html = html.replace(/_(.*?)_/g, '<em>$1</em>');
+        // Strikethrough
+        html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
+        // Blockquotes
+        html = html.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
+        // Unordered Lists (very basic)
+        html = html.replace(/^\* (.*$)/gim, '<ul><li>$1</li></ul>');
+        html = html.replace(/^\- (.*$)/gim, '<ul><li>$1</li></ul>');
+        // Ordered Lists (very basic)
+        html = html.replace(/^\d+\. (.*$)/gim, '<ol><li>$1</li></ol>');
+        // Inline Code
+        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+        // Code Blocks (basic)
+        html = html.replace(/```(\w*)\n([\s\S]*?)\n```/g, '<pre><code class="language-$1">$2</code></pre>');
+        // Links
+        html = html.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2">$1</a>');
+         // Images (basic, similar to links but with !)
+        html = html.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, '<img src="$2" alt="$1">');
+        // Paragraphs (wrap lines that don't seem to be other elements)
+        html = html.split('\n').map(line => {
+            if (line.trim() === '') return '';
+            if (/^<[h1-6r]|<[uo]l|<blockq|<li>|<pre|<img|<del|<table/.test(line)) return line;
+            return '<p>' + line + '</p>';
+        }).join('');
+        // Consolidate adjacent list tags
+        html = html.replace(/<\/ul>\s*<ul>/g, '');
+        html = html.replace(/<\/ol>\s*<ol>/g, '');
+        
+        previewEl.innerHTML = html;
+    }
+
+  </script>
+</body>
+</html> 
