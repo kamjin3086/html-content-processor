@@ -32,7 +32,7 @@ For enhanced Node.js performance, also install jsdom:
 npm install jsdom
 ```
 
-> **Cross-Environment Support**: Works in both Node.js and browser environments automatically. See our [Cross-Environment Guide](./CROSS_ENVIRONMENT_GUIDE.md) for details.
+> **Cross-Environment Support**: Works in both Node.js and browser environments automatically. See our [Cross-Environment Guide](./docs/CROSS_ENVIRONMENT_GUIDE.md) for details.
 
 ### Basic Usage
 
@@ -240,7 +240,7 @@ console.log('DOM Support:', domAdapter.hasJSDOM() ? 'Full' : 'Basic');
 const result = htmlToMarkdown(html); // Works everywhere!
 ```
 
-📘 **See [Cross-Environment Guide](./CROSS_ENVIRONMENT_GUIDE.md) for framework integration examples**
+📘 **See [Cross-Environment Guide](./docs/CROSS_ENVIRONMENT_GUIDE.md) for framework integration examples**
 
 ## 🔗 API Reference
 
@@ -261,7 +261,7 @@ const result = htmlToMarkdown(html); // Works everywhere!
 | `HtmlFilter` | Core content filtering engine |
 | `DefaultMarkdownGenerator` | Markdown conversion engine |
 
-[📚 **View Full API Documentation**](./API_USAGE_EXAMPLES.md)
+[📚 **View Full API Documentation**](./docs/API_USAGE_EXAMPLES.md)
 
 ## 🛠️ Development
 
@@ -308,7 +308,7 @@ HTML Content Processor is designed for high performance:
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guide](./docs/CONTRIBUTING.md) for details.
 
 ### Quick Start for Contributors
 
@@ -333,8 +333,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📖 [Documentation](./API_USAGE_EXAMPLES.md)
-- 🌍 [Cross-Environment Guide](./CROSS_ENVIRONMENT_GUIDE.md)
+- 📖 [Documentation](./docs/API_USAGE_EXAMPLES.md)
+- 🌍 [Cross-Environment Guide](./docs/CROSS_ENVIRONMENT_GUIDE.md)
 - 🐛 [Issue Tracker](https://github.com/kamjin3086/html-content-processor/issues)
 - 💬 [Discussions](https://github.com/kamjin3086/html-content-processor/discussions)
 
