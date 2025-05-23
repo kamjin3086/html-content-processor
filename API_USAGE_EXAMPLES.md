@@ -1,6 +1,6 @@
 # HTML Content Processor - API Usage Examples
 
-This document provides comprehensive examples of how to use the new HTML Content Processor API (v1.0.0).
+This document provides comprehensive examples of how to use the new HTML Content Processor API (v1.0.3).
 
 ## Table of Contents
 
@@ -228,7 +228,7 @@ import { usePlugin } from 'html-content-processor';
 // Simple filter plugin
 const customAdRemover = {
   name: 'custom-ad-remover',
-  version: '1.0.0',
+  version: '1.0.3',
   description: 'Removes custom advertisement patterns',
   filter: (html, context) => {
     return html.replace(/<div class="my-ads">.*?<\/div>/gi, '');
@@ -238,7 +238,7 @@ const customAdRemover = {
 // Markdown processing plugin
 const linkProcessor = {
   name: 'link-processor',
-  version: '1.0.0',
+  version: '1.0.3',
   description: 'Processes links in markdown',
   convert: (markdown, context) => {
     // Add target="_blank" to external links in HTML representation
@@ -411,7 +411,7 @@ const result: MarkdownResult = processor.filter().toMarkdown();
 // Custom plugin with proper typing
 const myPlugin: Plugin = {
   name: 'my-plugin',
-  version: '1.0.0',
+  version: '1.0.3',
   filter: (html: string, context) => {
     // TypeScript will provide proper intellisense here
     return html.replace(/unwanted/g, '');

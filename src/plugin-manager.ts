@@ -1,4 +1,5 @@
 import { Plugin, PluginContext, PluginError } from './types';
+import { VERSION } from './version';
 
 /**
  * Global plugin registry
@@ -279,7 +280,7 @@ export const builtinPlugins = {
    */
   adRemover: {
     name: 'ad-remover',
-    version: '1.0.0',
+    version: VERSION,
     description: 'Removes advertisement elements from HTML',
     filter: (html: string) => {
       return html.replace(
@@ -294,7 +295,7 @@ export const builtinPlugins = {
    */
   socialRemover: {
     name: 'social-remover',
-    version: '1.0.0',
+    version: VERSION,
     description: 'Removes social media widgets and share buttons',
     filter: (html: string) => {
       return html.replace(
@@ -309,7 +310,7 @@ export const builtinPlugins = {
    */
   markdownCleaner: {
     name: 'markdown-cleaner',
-    version: '1.0.0',
+    version: VERSION,
     description: 'Cleans up redundant Markdown formatting',
     convert: (markdown: string) => {
       return markdown

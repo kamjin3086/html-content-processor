@@ -4,10 +4,12 @@
  * A comprehensive library for cleaning, filtering, and converting HTML content
  * to Markdown with advanced customization options, presets, and plugin support.
  * 
- * @version 1.0.0
  * @author HTML Filter Strategy Team
  * @license MIT
  */
+
+// Version management
+import { VERSION, API_VERSION } from './version';
 
 // Core classes and components
 export { HtmlProcessor } from './html-processor';
@@ -83,6 +85,9 @@ export {
   builtinPlugins,
   useBuiltinPlugins
 } from './plugin-manager';
+
+// Export version management
+export { VERSION, API_VERSION, getVersionInfo } from './version';
 
 // Import everything for the default export
 import { HtmlProcessor } from './html-processor';
@@ -301,7 +306,7 @@ const legacyAPI = {
   filter: legacyFilter, 
   
   // Version information
-  version: '1.0.0'
+  version: VERSION
 };
 
 // Export legacy functions for backward compatibility
@@ -371,8 +376,8 @@ const htmlFilterAPI = {
   legacy: legacyAPI,
   
   // Version and metadata
-  version: '1.0.0',
-  apiVersion: 'v1'
+  version: VERSION,
+  apiVersion: API_VERSION
 };
 
 // Browser global registration
