@@ -154,13 +154,13 @@ export class DefaultMarkdownGenerator {
    * @param citations Whether to generate citations for links.
    * @returns Markdown generation result object.
    */
-  generateMarkdown(
+  async generateMarkdown(
     inputHtml: string,
     baseUrl: string = '',
     html2textOptions: Html2TextOptions = {},
     contentFilterOverride: HtmlFilter | null = null,
     citations: boolean = true
-  ): MarkdownGenerationResult {
+  ): Promise<MarkdownGenerationResult> {
     try {
       const h = new CustomHtml2Text(baseUrl);
       const defaultOptions: Html2TextOptions = {
@@ -181,7 +181,7 @@ export class DefaultMarkdownGenerator {
       
       let rawMarkdown: string;
       try {
-        rawMarkdown = h.handle(effectiveHtml);
+        rawMarkdown = await h.handle(effectiveHtml);
       } catch (e) {
         rawMarkdown = `Error converting HTML to markdown: ${e instanceof Error ? e.message : String(e)}`;
       }
@@ -207,10 +207,10 @@ export class DefaultMarkdownGenerator {
       const filterToUse = contentFilterOverride || this.contentFilter;
       if (filterToUse) {
         try {
-          const filteredChunks = filterToUse.filterContent(effectiveHtml);
+          const filteredChunks = await filterToUse.filterContent(effectiveHtml);
           // Wrap each chunk in a div to maintain structure for Markdown conversion, or join directly if preferred
           fitHtml = filteredChunks.join('\n'); // Simpler join, CustomHtml2Text should handle block elements
-          fitMarkdown = h.handle(fitHtml); 
+          fitMarkdown = await h.handle(fitHtml); 
           fitMarkdown = fitMarkdown.replace(/^\s*```/gm, '```'); // Cleanup for fitMarkdown as well
         } catch (e) {
           fitMarkdown = `Error generating fit markdown: ${e instanceof Error ? e.message : String(e)}`;

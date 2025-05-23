@@ -1,343 +1,296 @@
 # HTML Content Processor
 
-[![npm version](https://badge.fury.io/js/html-content-processor.svg)](https://badge.fury.io/js/html-content-processor)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#)
+A modern TypeScript library for cleaning, filtering, and converting HTML content to Markdown with intelligent content extraction. Supports cross-environment execution (Browser/Node.js) with automatic page type detection.
 
-A powerful, professional library for intelligent HTML content processing, cleaning, and conversion to Markdown. Extract meaningful content from web pages while filtering out noise like ads, navigation, and boilerplate text.
+## Features
 
-## ✨ Features
+- 🚀 **Modern API Design** - Clean functional and class-based APIs
+- 🧠 **Intelligent Filtering** - Automatic page type detection with optimal filtering strategies
+- 📝 **High-Quality Markdown Conversion** - Advanced HTML to Markdown transformation
+- 🌐 **Cross-Environment Support** - Full compatibility with both browser and Node.js environments
+- 🎯 **Smart Presets** - Optimized configurations for different content types
+- 🔌 **Plugin System** - Extensible plugin architecture
+- 📊 **Automatic Detection** - Smart detection of search engines, blogs, news, documentation, and more
 
-- 🧠 **Intelligent Content Extraction** - Smart algorithm to identify and extract main content
-- 🧹 **Advanced HTML Cleaning** - Remove ads, navigation, sidebars, and other noise
-- 📝 **Multiple Output Formats** - Markdown, plain text, cleaned HTML, or structured fragments
-- 🎯 **Content-Aware Presets** - Optimized configurations for articles, blogs, news, and more
-- 🔌 **Plugin System** - Extensible architecture with built-in and custom plugins
-- 🌊 **Fluent API** - Chainable, intuitive interface for complex processing pipelines
-- 📚 **TypeScript Support** - Full type definitions for enhanced development experience
-- ⚡ **High Performance** - Efficient processing with minimal overhead
-- 🎛️ **Highly Configurable** - Fine-tune extraction algorithms to your needs
-
-## 🚀 Quick Start
-
-### Installation
+## Installation
 
 ```bash
 npm install html-content-processor
 ```
 
-For enhanced Node.js performance, also install jsdom:
-```bash
-npm install jsdom
-```
-
-> **Cross-Environment Support**: Works in both Node.js and browser environments automatically. See our [Cross-Environment Guide](./docs/CROSS_ENVIRONMENT_GUIDE.md) for details.
+## Quick Start
 
 ### Basic Usage
 
-```javascript
-import { htmlToMarkdown, cleanHtml, HtmlProcessor } from 'html-content-processor';
+```typescript
+import { htmlToMarkdown, htmlToText, cleanHtml } from 'html-content-processor';
 
-// Simple HTML to Markdown conversion
-const markdown = htmlToMarkdown('<h1>Title</h1><p>Content with <a href="#">link</a></p>');
-console.log(markdown);
-// Output: # Title\n\nContent with [link](#)
+// Convert HTML to Markdown
+const markdown = await htmlToMarkdown('<h1>Hello</h1><p>World</p>');
 
-// Clean HTML (remove noise)
-const cleanedHtml = cleanHtml(dirtyHtml);
+// Convert HTML to plain text
+const text = await htmlToText('<h1>Hello</h1><p>World</p>');
 
-// Advanced processing with fluent API
-const result = HtmlProcessor
-  .from(complexHtml)
-  .withBaseUrl('https://example.com')
-  .filter({ threshold: 3 })
-  .toMarkdown({ citations: true });
-
-console.log(result.content);    // Main content
-console.log(result.references); // Citation links
+// Clean HTML content
+const clean = await cleanHtml('<div>Content</div><script>ads</script>');
 ```
 
-## 📖 Documentation
+### Automatic Page Type Detection (Recommended)
 
-### Content Extraction Presets
+The library can automatically detect page types and apply optimal filtering strategies:
 
-Choose from optimized presets for different content types:
+```typescript
+import { htmlToMarkdownAuto, cleanHtmlAuto, extractContentAuto } from 'html-content-processor';
 
-```javascript
-import { 
-  htmlToArticleMarkdown,   // Long-form articles
-  htmlToBlogMarkdown,      // Blog posts  
-  htmlToNewsMarkdown,      // News articles
-  strictCleanHtml,         // Aggressive cleaning
-  gentleCleanHtml          // Conservative cleaning
-} from 'html-content-processor';
+// Automatic detection with URL context
+const markdown = await htmlToMarkdownAuto(html, 'https://example.com/blog-post');
 
-const articleMarkdown = htmlToArticleMarkdown(html, 'https://example.com');
+// Clean HTML with automatic page type detection
+const cleanHtml = await cleanHtmlAuto(html, 'https://news.example.com/article');
+
+// Extract content with detailed page type information
+const result = await extractContentAuto(html, 'https://docs.example.com/guide');
+console.log('Detected page type:', result.pageType.type);
+console.log('Confidence:', result.pageType.confidence);
+console.log('Markdown:', result.markdown.content);
 ```
 
-### Fluent API (Recommended)
+### HtmlProcessor Class (Advanced Usage)
 
-The fluent API provides maximum flexibility and control:
-
-```javascript
+```typescript
 import { HtmlProcessor } from 'html-content-processor';
 
-const processor = HtmlProcessor
+// Method chaining
+const result = await HtmlProcessor
   .from(html)
-  .withBaseUrl('https://news.site.com')
-  .withOptions({
-    filter: {
-      threshold: 3,
-      strategy: 'dynamic',
-      removeElements: ['nav', 'aside', '.ads']
-    },
-    converter: {
-      citations: true,
-      format: 'github'
-    }
-  })
+  .withBaseUrl('https://example.com')
+  .withAutoDetection() // Enable automatic page type detection
+  .filter()
+  .toMarkdown();
+
+// Manual page type setting
+const processor = await HtmlProcessor
+  .from(html)
+  .withPageType('blog') // Manually set page type
   .filter();
 
-// Multiple output formats from same processor
-const markdown = processor.toMarkdown();
-const plainText = processor.toText();
-const fragments = processor.toArray();
-const cleanHtml = processor.toString();
+const markdown = await processor.toMarkdown();
 ```
 
-### Plugin System
+### Content-Specific Presets
 
-Extend functionality with plugins:
+```typescript
+import { 
+  htmlToArticleMarkdown, 
+  htmlToBlogMarkdown, 
+  htmlToNewsMarkdown 
+} from 'html-content-processor';
 
-```javascript
-import { usePlugin, useBuiltinPlugins } from 'html-content-processor';
-
-// Use built-in plugins
-useBuiltinPlugins(); // Includes ad-remover, social-remover, markdown-cleaner
-
-// Create custom plugin
-const myPlugin = {
-  name: 'custom-filter',
-  version: '1.0.4',
-  filter: (html, context) => {
-    return html.replace(/unwanted-pattern/g, '');
-  }
-};
-
-usePlugin(myPlugin);
+// Optimized for different content types
+const articleMd = await htmlToArticleMarkdown(html, baseUrl);
+const blogMd = await htmlToBlogMarkdown(html, baseUrl);
+const newsMd = await htmlToNewsMarkdown(html, baseUrl);
 ```
 
-## 🔧 Configuration Options
-
-### Filter Options
-
-```javascript
-const options = {
-  filter: {
-    threshold: 3,                    // Minimum word count
-    strategy: 'dynamic',             // 'fixed' or 'dynamic'
-    ratio: 0.55,                     // Text-to-HTML ratio threshold
-    minWords: 10,                    // Minimum words per element
-    removeElements: ['nav', 'aside'], // Elements to remove
-    keepElements: ['article', 'main'] // Elements to preserve
-  }
-};
-```
-
-### Converter Options
-
-```javascript
-const options = {
-  converter: {
-    citations: true,              // Include link references
-    ignoreLinks: false,           // Skip link conversion
-    ignoreImages: false,          // Skip image conversion
-    format: 'github',             // Markdown flavor
-    linkStyle: 'reference'        // 'inline' or 'reference'
-  }
-};
-```
-
-## 📊 Example Use Cases
-
-### Web Scraping & Content Extraction
-
-```javascript
-// Extract clean content from scraped web pages
-const article = await fetch('https://news.site.com/article')
-  .then(res => res.text())
-  .then(html => htmlToArticleMarkdown(html, 'https://news.site.com'));
-```
-
-### CMS Content Processing
-
-```javascript
-// Process user-generated HTML content
-const processor = HtmlProcessor.from(userHtml)
-  .withOptions({ preset: 'strict' });  // Remove all potentially harmful content
-
-const safeContent = processor.filter().toString();
-```
-
-### Documentation Generation
-
-```javascript
-// Convert HTML documentation to Markdown
-const docs = HtmlProcessor.from(htmlDocs)
-  .filter({ preserveStructure: true })
-  .toMarkdown({ 
-    citations: true,
-    format: 'github' 
-  });
-```
-
-## 🎯 Advanced Features
-
-### Metadata & Analytics
-
-```javascript
-const result = HtmlProcessor.from(html).filter().toMarkdown();
-
-console.log(result.metadata);
-// {
-//   originalLength: 15420,
-//   filteredLength: 8932,
-//   reductionPercent: 42.1,
-//   processingTime: 23,
-//   elementsRemoved: 156,
-//   linksFound: 12
-// }
-```
-
-### Error Handling
-
-```javascript
-import { FilterError, ConversionError } from 'html-content-processor';
-
-try {
-  const result = HtmlProcessor.from(invalidHtml).filter().toMarkdown();
-} catch (error) {
-  if (error instanceof FilterError) {
-    console.error('Content filtering failed:', error.message);
-  } else if (error instanceof ConversionError) {
-    console.error('Markdown conversion failed:', error.message);
-  }
-}
-```
-
-## 🌍 Cross-Environment Support
-
-Works seamlessly in both **Node.js** and **browser** environments:
-
-```javascript
-import { isNode, isBrowser, domAdapter } from 'html-content-processor';
-
-console.log('Environment:', isNode() ? 'Node.js' : 'Browser');
-console.log('DOM Support:', domAdapter.hasJSDOM() ? 'Full' : 'Basic');
-
-// Environment-specific optimizations are automatic
-const result = htmlToMarkdown(html); // Works everywhere!
-```
-
-📘 **See [Cross-Environment Guide](./docs/CROSS_ENVIRONMENT_GUIDE.md) for framework integration examples**
-
-## 🔗 API Reference
+## API Reference
 
 ### Core Functions
 
 | Function | Description | Return Type |
 |----------|-------------|-------------|
-| `htmlToMarkdown(html, options?)` | Convert HTML to Markdown | `string` |
-| `cleanHtml(html, options?)` | Clean and filter HTML | `string` |
-| `extractContent(html, options?)` | Extract content fragments | `string[]` |
-| `htmlToText(html, options?)` | Convert to plain text | `string` |
+| `htmlToMarkdown(html, options?)` | Convert HTML to Markdown | `Promise<string>` |
+| `htmlToMarkdownWithCitations(html, baseUrl?, options?)` | Convert HTML to Markdown with citations | `Promise<string>` |
+| `htmlToText(html, options?)` | Convert HTML to plain text | `Promise<string>` |
+| `cleanHtml(html, options?)` | Clean HTML content | `Promise<string>` |
+| `extractContent(html, options?)` | Extract content fragments | `Promise<string[]>` |
 
-### Classes
+### Automatic Detection Functions
 
-| Class | Description |
-|-------|-------------|
-| `HtmlProcessor` | Main processing class with fluent API |
-| `HtmlFilter` | Core content filtering engine |
-| `DefaultMarkdownGenerator` | Markdown conversion engine |
+| Function | Description | Benefits |
+|----------|-------------|----------|
+| `htmlToMarkdownAuto(html, url?, options?)` | Auto-detect page type and convert to Markdown | Optimal filtering for each page type |
+| `cleanHtmlAuto(html, url?, options?)` | Auto-detect page type and clean HTML | Smart noise removal |
+| `extractContentAuto(html, url?, options?)` | Auto-detect and extract with detailed results | Comprehensive page analysis |
 
-[📚 **View Full API Documentation**](./docs/API_USAGE_EXAMPLES.md)
+#### Example: Using Auto-Detection
 
-## 🛠️ Development
+```typescript
+// Blog post detection
+const blogResult = await htmlToMarkdownAuto(html, 'https://medium.com/@user/post');
+// Automatically applies blog-optimized filtering
 
-### Building from Source
+// News article detection  
+const newsResult = await htmlToMarkdownAuto(html, 'https://cnn.com/article');
+// Automatically applies news-optimized filtering
 
-```bash
-# Clone the repository
-git clone https://github.com/kamjin3086/html-content-processor.git
-cd html-content-processor
+// Documentation detection
+const docsResult = await htmlToMarkdownAuto(html, 'https://docs.react.dev/guide');
+// Automatically applies documentation-optimized filtering
 
-# Install dependencies
-npm install
-
-# Build the project
-npm run build
-
-# Run development server
-npm run dev
+// Search engine results detection
+const searchResult = await htmlToMarkdownAuto(html, 'https://google.com/search?q=query');
+// Automatically applies search-results-optimized filtering
 ```
 
-### Running Tests
+### Content-Specific Presets
 
-```bash
-npm test
+| Function | Optimized For |
+|----------|---------------|
+| `htmlToArticleMarkdown()` | Long-form articles |
+| `htmlToBlogMarkdown()` | Blog posts |
+| `htmlToNewsMarkdown()` | News articles |
+| `strictCleanHtml()` | Aggressive cleaning |
+| `gentleCleanHtml()` | Conservative cleaning |
+
+### HtmlProcessor Class
+
+```typescript
+// Create processor
+const processor = HtmlProcessor.from(html, options);
+
+// Configuration methods
+processor.withBaseUrl(url)           // Set base URL
+processor.withOptions(options)       // Update options
+processor.withAutoDetection(url?)    // Enable auto-detection
+processor.withPageType(type)         // Manually set page type
+
+// Processing methods
+await processor.filter(options?)     // Apply filtering
+await processor.toMarkdown(options?) // Convert to Markdown
+await processor.toText()             // Convert to plain text
+await processor.toArray()            // Convert to fragment array
+processor.toString()                 // Get cleaned HTML
+
+// Information methods
+processor.getOptions()               // Get current options
+processor.isProcessed()              // Check if processed
+processor.getPageTypeResult()        // Get page type detection result
 ```
 
-### Demo
+## Configuration Options
 
-Try the interactive demo:
+### Filter Options (FilterOptions)
 
-```bash
-npm run dev
-# Visit http://localhost:9000/demo/
+```typescript
+{
+  threshold?: number;           // Filtering threshold (default: 2)
+  strategy?: 'fixed' | 'dynamic'; // Filtering strategy (default: 'dynamic')
+  ratio?: number;              // Text density ratio (default: 0.48)
+  minWords?: number;           // Minimum word count (default: 0)
+  preserveStructure?: boolean; // Preserve structure (default: false)
+  keepElements?: string[];     // Elements to keep
+  removeElements?: string[];   // Elements to remove
+}
 ```
 
-## 📈 Performance
+### Convert Options (ConvertOptions)
 
-HTML Content Processor is designed for high performance:
+```typescript
+{
+  citations?: boolean;         // Generate citations (default: true)
+  ignoreLinks?: boolean;       // Ignore links (default: false)
+  ignoreImages?: boolean;      // Ignore images (default: false)
+  baseUrl?: string;           // Base URL
+  threshold?: number;         // Filter threshold
+  strategy?: 'fixed' | 'dynamic'; // Filter strategy
+  ratio?: number;             // Text density ratio
+}
+```
+
+## Automatic Page Type Detection
+
+The library automatically detects and optimizes for these page types:
+
+- `search-engine` - Search engine result pages
+- `blog` - Blog posts and personal articles
+- `news` - News articles and journalism
+- `documentation` - Technical documentation
+- `e-commerce` - E-commerce and product pages
+- `social-media` - Social media content
+- `forum` - Forum discussions and Q&A
+- `article` - General articles and content
+- `landing-page` - Marketing and landing pages
+
+### How Auto-Detection Works
+
+```typescript
+import { extractContentAuto } from 'html-content-processor';
+
+const result = await extractContentAuto(html, url);
+
+console.log('Page Type:', result.pageType.type);
+console.log('Confidence:', (result.pageType.confidence * 100).toFixed(1) + '%');
+console.log('Detection Reasons:', result.pageType.reasons);
+console.log('Applied Filter Options:', result.pageType.filterOptions);
+```
+
+## Environment Support
+
+### Node.js
+```bash
+npm install jsdom  # Recommended for best performance
+```
+
+### Browser
+Direct support, no additional dependencies required.
+
+### CDN
+```html
+<script src="https://unpkg.com/html-content-processor"></script>
+<script>
+  // Global variable: window.htmlFilter
+  htmlFilter.htmlToMarkdown(html).then(console.log);
+  
+  // Auto-detection example
+  htmlFilter.htmlToMarkdownAuto(html, window.location.href).then(result => {
+    console.log('Auto-detected content:', result);
+  });
+</script>
+```
+
+## Real-World Examples
+
+### Web Scraping with Auto-Detection
+
+```typescript
+import { htmlToMarkdownAuto } from 'html-content-processor';
+
+// Scrape and convert blog post
+const response = await fetch('https://blog.example.com/post-123');
+const html = await response.text();
+const markdown = await htmlToMarkdownAuto(html, response.url);
+// Automatically detects it's a blog and applies blog-specific filtering
+```
+
+### News Article Processing
+
+```typescript
+import { extractContentAuto } from 'html-content-processor';
+
+const result = await extractContentAuto(newsHtml, 'https://news.site.com/article');
+if (result.pageType.type === 'news') {
+  console.log('High-quality news content extracted');
+  console.log('Confidence:', result.pageType.confidence);
+}
+```
+
+### Documentation Conversion
+
+```typescript
+import { htmlToMarkdownAuto } from 'html-content-processor';
+
+// Convert technical documentation
+const docMarkdown = await htmlToMarkdownAuto(docsHtml, 'https://docs.example.com/api');
+// Automatically preserves code blocks, headers, and technical content structure
+```
+
+## Performance
 
 - ⚡ **Fast Processing**: Optimized algorithms for quick content extraction
-- 💾 **Memory Efficient**: Minimal memory footprint, suitable for server environments
+- 💾 **Memory Efficient**: Minimal memory footprint
 - 🔄 **Batch Processing**: Handle multiple documents efficiently
-- 📊 **Benchmarks**: Processes typical web pages in < 50ms
+- 📊 **Smart Caching**: Automatic page type detection caching
 
-## 🤝 Contributing
+## License
 
-We welcome contributions! Please see our [Contributing Guide](./docs/CONTRIBUTING.md) for details.
-
-### Quick Start for Contributors
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes
-4. Add tests for your changes
-5. Run tests: `npm test`
-6. Commit: `git commit -m 'Add amazing feature'`
-7. Push: `git push origin feature/amazing-feature`
-8. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with TypeScript for type safety
-- Powered by modern web standards
-- Inspired by readability algorithms and content extraction research
-
-## 📞 Support
-
-- 📖 [Documentation](./docs/API_USAGE_EXAMPLES.md)
-- 🌍 [Cross-Environment Guide](./docs/CROSS_ENVIRONMENT_GUIDE.md)
-- 🐛 [Issue Tracker](https://github.com/kamjin3086/html-content-processor/issues)
-- 💬 [Discussions](https://github.com/kamjin3086/html-content-processor/discussions)
-
----
-
-**Made with ❤️ by the HTML Content Processor Team**
+MIT License

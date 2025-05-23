@@ -1,68 +1,89 @@
-# Contributing to HTML Content Processor
+# Contributing
 
-We love your input! We want to make contributing to HTML Content Processor as easy and transparent as possible, whether it's:
+We welcome contributions to `html-content-processor`!
 
-- Reporting a bug
-- Discussing the current state of the code
-- Submitting a fix
-- Proposing new features
-- Becoming a maintainer
+## Getting Started
 
-## Development Process
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes
+4. Run tests: `npm test`
+5. Submit a pull request
 
-We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
+## Development Setup
 
-### Pull Requests
+```bash
+git clone https://github.com/your-username/html-content-processor.git
+cd html-content-processor
+npm install
+npm run build
+npm test
+```
 
-1. Fork the repo and create your branch from `main`
-2. If you've added code that should be tested, add tests
-3. If you've changed APIs, update the documentation
-4. Ensure the test suite passes
-5. Make sure your code lints
-6. Issue that pull request!
+## Code Standards
 
-### Code Style
-
+### TypeScript
 - Use TypeScript for all new code
-- Follow existing code style and conventions
-- Use meaningful variable and function names
+- Follow existing code style
 - Add JSDoc comments for public APIs
 - Keep functions focused and small
 
 ### Testing
-
 - Write tests for new features
-- Ensure existing tests continue to pass
 - Test both Node.js and browser environments
-- Include edge cases in your tests
+- Ensure all tests pass: `npm test`
+- Add URLs to test suite for new page types
 
 ### Documentation
+- Update README.md for new features
+- Update API examples in docs/
+- Add inline comments for complex logic
 
-- Update README.md if you change functionality
-- Update API_USAGE_EXAMPLES.md for new features
-- Add inline code comments for complex logic
-- Keep examples simple and clear
+## Pull Request Process
 
-## Bug Reports
+1. **Describe your changes** clearly
+2. **Update documentation** if needed
+3. **Add tests** for new functionality
+4. **Ensure CI passes** (build + tests)
+5. **Keep commits focused** and descriptive
 
-**Great Bug Reports** tend to have:
+## Reporting Issues
 
-- A quick summary and/or background
-- Steps to reproduce
-  - Be specific!
-  - Give sample code if you can
-- What you expected would happen
-- What actually happens
-- Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
+Include:
+- **Clear description** of the problem
+- **Steps to reproduce** with code examples
+- **Expected vs actual behavior**
+- **Environment details** (Node.js/browser version)
 
 ## Feature Requests
 
-We actively welcome feature requests. Consider:
+Consider:
+- **Use case** and benefits
+- **Backward compatibility**
+- **Performance impact**
+- **Implementation complexity**
 
-- The scope of the change
-- Backward compatibility
-- Performance implications
-- Whether it fits the project's goals
+## Areas for Contribution
+
+### Page Type Detection
+- Add new page type detection rules
+- Improve detection accuracy
+- Add test URLs for new page types
+
+### Core Functionality
+- Enhance HTML filtering algorithms
+- Improve Markdown conversion quality
+- Add new presets for specific content types
+
+### Documentation
+- Improve API examples
+- Add use case guides
+- Translate documentation
+
+### Testing
+- Add more test cases
+- Improve test coverage
+- Add performance benchmarks
 
 ## License
 
@@ -70,4 +91,4 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ## Questions?
 
-Feel free to open an issue or discussion if you have questions about contributing! 
+Open an issue or discussion for any questions about contributing! 

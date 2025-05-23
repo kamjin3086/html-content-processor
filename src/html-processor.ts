@@ -15,6 +15,7 @@ import {
 import { getPreset, mergeWithPreset } from './presets';
 import { pluginRegistry } from './plugin-manager';
 import { pageTypeDetector, PageTypeResult } from './page-type-detector';
+import { PageTypeDetector } from './page-type-detector';
 
 /**
  * Main HTML processor class with fluent API
@@ -95,25 +96,33 @@ export class HtmlProcessor {
   }
 
   /**
-   * Apply HTML filtering with optional custom options
+   * Apply HTML filtering
    * @param options Filter options (optional)
    * @returns This processor instance for chaining
    */
-  filter(options?: FilterOptions): HtmlProcessor {
-    if (!this.currentHtml) {
-      throw new FilterError('No HTML content to filter. Use HtmlProcessor.from(html) or provide HTML content.');
-    }
-
+  async filter(options?: FilterOptions): Promise<HtmlProcessor> {
     try {
       const startTime = Date.now();
 
-      // Merge filter options if provided
-      if (options) {
-        this.options.filter = { ...this.options.filter, ...options };
-        this.htmlFilter = this.createHtmlFilter();
+      // Apply auto-detection if enabled
+      if (this.autoDetectEnabled && !this.pageTypeResult) {
+        await this.detectPageType();
       }
 
-      // Apply plugins before filtering
+      // Merge filter options with auto-detected ones
+      const mergedOptions: FilterOptions = {
+        ...this.options.filter,
+        ...(this.pageTypeResult?.filterOptions || {}),
+        ...options
+      };
+
+      // Update options with merged options
+      this.options.filter = mergedOptions;
+      
+      // Create or update HTML filter
+      this.htmlFilter = this.createHtmlFilter();
+
+      // Apply filter plugins
       const pluginContext: PluginContext = {
         options: this.options,
         baseUrl: this.baseUrl,
@@ -124,7 +133,7 @@ export class HtmlProcessor {
       let htmlToFilter = pluginRegistry.applyFilterPlugins(this.currentHtml, pluginContext);
 
       // Apply HTML filtering
-      const filteredContent = this.htmlFilter.filterContentAsString(htmlToFilter);
+      const filteredContent = await this.htmlFilter.filterContentAsString(htmlToFilter);
       
       this.currentHtml = filteredContent || this.currentHtml;
       this.processed = true;
@@ -146,7 +155,7 @@ export class HtmlProcessor {
    * @param options Converter options (optional)
    * @returns Markdown result
    */
-  toMarkdown(options?: ConverterOptions): MarkdownResult {
+  async toMarkdown(options?: ConverterOptions): Promise<MarkdownResult> {
     try {
       const startTime = Date.now();
 
@@ -161,7 +170,7 @@ export class HtmlProcessor {
       };
 
       // Generate markdown
-      const result = this.markdownGenerator.generateMarkdown(
+      const result = await this.markdownGenerator.generateMarkdown(
         this.currentHtml,
         this.baseUrl,
         mdOptions,
@@ -207,8 +216,8 @@ export class HtmlProcessor {
    * Convert to plain text
    * @returns Plain text content
    */
-  toText(): string {
-    const markdown = this.toMarkdown({ ignoreLinks: true, ignoreImages: true });
+  async toText(): Promise<string> {
+    const markdown = await this.toMarkdown({ ignoreLinks: true, ignoreImages: true });
     return markdown.content
       .replace(/^#+\s*/gm, '') // Remove headers
       .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
@@ -222,13 +231,13 @@ export class HtmlProcessor {
    * Convert to array of HTML fragments
    * @returns Array of HTML fragments
    */
-  toArray(): string[] {
+  async toArray(): Promise<string[]> {
     if (!this.currentHtml) {
       return [];
     }
 
     try {
-      const fragments = this.htmlFilter.filterContent(this.currentHtml);
+      const fragments = await this.htmlFilter.filterContent(this.currentHtml);
       return fragments && fragments.length > 0 ? fragments : [this.currentHtml];
     } catch (error: unknown) {
       console.warn('[HtmlProcessor] Failed to convert to array:', error);
@@ -256,12 +265,12 @@ export class HtmlProcessor {
    * Get detailed filter result with metadata
    * @returns Filter result with metadata
    */
-  getFilterResult(): FilterResult {
+  async getFilterResult(): Promise<FilterResult> {
     const originalHtml = this.currentHtml; // This is after filtering, need to track original
     const startTime = Date.now();
     
     try {
-      const fragments = this.toArray();
+      const fragments = await this.toArray();
       const processingTime = Date.now() - startTime;
 
       const metadata: FilterMetadata = {
@@ -410,31 +419,28 @@ export class HtmlProcessor {
   }
 
   /**
-   * Enable automatic page type detection and parameter optimization
+   * Enable page type auto-detection with optional URL hint
    * @param url Optional URL for better detection accuracy
    * @returns This processor instance for chaining
    */
-  withAutoDetection(url?: string): HtmlProcessor {
+  async withAutoDetection(url?: string): Promise<HtmlProcessor> {
     this.autoDetectEnabled = true;
     
-    if (this.currentHtml) {
-      this.pageTypeResult = pageTypeDetector.detectPageType(this.currentHtml, url || this.baseUrl);
-      
-      if (this.options.debug) {
-        console.log(`[HtmlProcessor] Auto-detected page type: ${this.pageTypeResult.type} (confidence: ${(this.pageTypeResult.confidence * 100).toFixed(1)}%)`);
-        console.log(`[HtmlProcessor] Detection reasons:`, this.pageTypeResult.reasons);
-      }
-      
-      // Apply auto-detected filter options
-      this.options.filter = {
-        ...this.options.filter,
-        ...this.pageTypeResult.filterOptions
-      };
-      
-      // Recreate filter with new options
-      this.htmlFilter = this.createHtmlFilter();
-    }
+    // Detect page type immediately with current HTML and URL
+    const pageTypeDetector = new PageTypeDetector();
+    this.pageTypeResult = await pageTypeDetector.detectPageType(this.currentHtml, url || this.baseUrl);  
     
+    if (this.options.debug && this.pageTypeResult) {
+      console.log(`[HtmlProcessor] Auto-detected page type: ${this.pageTypeResult.type} (confidence: ${(this.pageTypeResult.confidence * 100).toFixed(1)}%)`);
+      console.log(`[HtmlProcessor] Detection reasons:`, this.pageTypeResult.reasons);
+    }
+
+    // Update filter options with detected options
+    this.options.filter = {
+      ...this.options.filter,
+      ...this.pageTypeResult.filterOptions
+    };
+
     return this;
   }
 
@@ -455,34 +461,42 @@ export class HtmlProcessor {
   }
 
   /**
-   * Manually set page type and apply corresponding filter options
-   * @param pageType Page type to apply
+   * Manually set page type (disables auto-detection)
+   * @param pageType Page type to set
    * @returns This processor instance for chaining
    */
-  withPageType(pageType: string): HtmlProcessor {
-    if (this.currentHtml) {
-      // Create a mock detection result
-      this.pageTypeResult = pageTypeDetector.detectPageType('');
-      this.pageTypeResult.type = pageType as any;
-      this.pageTypeResult.confidence = 1.0;
-      this.pageTypeResult.reasons = [`Manually set to ${pageType}`];
-      
-      // Get filter options for the specified type
-      const filterOptions = (pageTypeDetector as any).getFilterOptionsForType(pageType, this.pageTypeResult.characteristics);
-      
-      this.options.filter = {
-        ...this.options.filter,
-        ...filterOptions
-      };
-      
-      // Recreate filter with new options
-      this.htmlFilter = this.createHtmlFilter();
-      
-      if (this.options.debug) {
-        console.log(`[HtmlProcessor] Manually set page type: ${pageType}`);
-      }
-    }
+  async withPageType(pageType: string): Promise<HtmlProcessor> {
+    this.autoDetectEnabled = false;
+    const pageTypeDetector = new PageTypeDetector();
+    this.pageTypeResult = await pageTypeDetector.detectPageType('');
+    this.pageTypeResult.type = pageType as any;
+    this.pageTypeResult.confidence = 1.0;
+    this.pageTypeResult.reasons = [`Manually set to ${pageType}`];
     
+    // Get filter options for this page type
+    const filterOptions = (pageTypeDetector as any).getFilterOptionsForType(pageType, this.pageTypeResult.characteristics);
+    this.pageTypeResult.filterOptions = filterOptions;
+    
+    // Update processor options
+    this.options.filter = {
+      ...this.options.filter,
+      ...filterOptions
+    };
+
+    if (this.options.debug) {
+      console.log(`[HtmlProcessor] Page type manually set to: ${pageType}`);
+    }
+
     return this;
+  }
+
+  /**
+   * Internal method to detect page type
+   */
+  private async detectPageType(): Promise<void> {
+    if (!this.pageTypeResult) {
+      const pageTypeDetector = new PageTypeDetector();
+      this.pageTypeResult = await pageTypeDetector.detectPageType(this.currentHtml, this.baseUrl);
+    }
   }
 } 

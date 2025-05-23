@@ -43,14 +43,14 @@ export class CustomHtml2Text {
    * @param html HTML string.
    * @returns Converted Markdown.
    */
-  handle(html: string): string {
+  async handle(html: string): Promise<string> {
     if (!html) return '';
 
-    const doc = parseHTML(html);
+    const doc = await parseHTML(html);
     
     this.cleanDocument(doc);
     
-    return this.domToMarkdown(doc.body);
+    return await this.domToMarkdown(doc.body);
   }
 
   /**
@@ -77,7 +77,7 @@ export class CustomHtml2Text {
    * @param _level Current heading level (unused in this simplified version, but kept for potential future use).
    * @returns Converted Markdown text.
    */
-  private domToMarkdown(element: HTMLElement, _level: number = 0): string {
+  private async domToMarkdown(element: HTMLElement, _level: number = 0): Promise<string> {
     if (!element) return '';
 
     let result = '';
@@ -95,7 +95,7 @@ export class CustomHtml2Text {
         break;
         
       case 'p':
-        result += this.processChildren(element).trim() + '\n\n';
+        result += (await this.processChildren(element)).trim() + '\n\n';
         break;
         
       case 'br':
@@ -107,20 +107,20 @@ export class CustomHtml2Text {
         break;
         
       case 'ul':
-        result += this.processList(element, '*') + '\n';
+        result += await this.processList(element, '*') + '\n';
         break;
         
       case 'ol':
-        result += this.processList(element, '1.') + '\n';
+        result += await this.processList(element, '1.') + '\n';
         break;
         
       case 'li':
         // Li elements are typically handled by processList, this is a fallback or direct li handling
-        result += '* ' + this.processChildren(element).trim() + '\n'; 
+        result += '* ' + (await this.processChildren(element)).trim() + '\n'; 
         break;
         
       case 'blockquote':
-        result += this.processBlockquote(element) + '\n';
+        result += await this.processBlockquote(element) + '\n';
         break;
         
       case 'pre':
@@ -167,23 +167,23 @@ export class CustomHtml2Text {
       case 'strong':
       case 'b':
         if (!this.options.ignoreEmphasis) {
-          result += '**' + this.processChildren(element).trim() + '**';
+          result += '**' + (await this.processChildren(element)).trim() + '**';
         } else {
-          result += this.processChildren(element).trim();
+          result += (await this.processChildren(element)).trim();
         }
         break;
         
       case 'em':
       case 'i':
         if (!this.options.ignoreEmphasis) {
-          result += '_' + this.processChildren(element).trim() + '_';
+          result += '_' + (await this.processChildren(element)).trim() + '_';
         } else {
-          result += this.processChildren(element).trim();
+          result += (await this.processChildren(element)).trim();
         }
         break;
         
       case 'table':
-        result += this.processTable(element) + '\n\n';
+        result += await this.processTable(element) + '\n\n';
         break;
         
       case 'sup':
@@ -203,7 +203,7 @@ export class CustomHtml2Text {
         break;
         
       default:
-        result += this.processChildren(element);
+        result += await this.processChildren(element);
     }
 
     return result;
@@ -224,77 +224,81 @@ export class CustomHtml2Text {
    * @param element Parent element.
    * @returns Processed Markdown for children.
    */
-  private processChildren(element: HTMLElement): string {
+  private async processChildren(element: HTMLElement): Promise<string> {
     if (!element) return '';
     
-    const Node = getNode();
+    const Node = await getNode();
     let result = '';
-    Array.from(element.childNodes).forEach(node => {
+    
+    // Use for...of loop to handle async operations properly
+    for (const node of Array.from(element.childNodes)) {
       if (node.nodeType === Node.TEXT_NODE) {
         // Normalize whitespace in text nodes: replace multiple spaces/newlines with a single space
         result += (node.textContent || '').replace(/\s+/g, ' '); 
       } else if (node.nodeType === Node.ELEMENT_NODE) {
-        result += this.domToMarkdown(node as HTMLElement);
+        result += await this.domToMarkdown(node as HTMLElement);
       }
-    });
-    
-    // Trim spaces that might have been introduced, especially from mixed content or at the start/end of blocks
-    return result.trim(); 
-  }
+    }
 
-  /**
-   * Processes a list (ul or ol).
-   * @param element List element (ul or ol).
-   * @param marker List item marker ('*' or '1.').
-   * @returns Markdown for the list.
-   */
-  private processList(element: HTMLElement, marker: string): string {
-    let result = '';
-    const items = element.querySelectorAll('li');
-    items.forEach((item, index) => {
-      const itemMarker = marker === '1.' ? `${index + 1}.` : marker;
-      result += `${itemMarker} ${this.processChildren(item).trim()}\n`;
-    });
     return result;
   }
 
   /**
-   * Processes a blockquote element.
-   * @param element Blockquote element.
-   * @returns Markdown for the blockquote.
+   * Processes a list element (ul or ol) and converts it to Markdown.
+   * @param element List element.
+   * @param marker List marker ('*' for ul, '1.' for ol).
+   * @returns Processed Markdown for list.
    */
-  private processBlockquote(element: HTMLElement): string {
-    const content = this.processChildren(element).trim();
-    // Add '> ' to each line of the blockquote content
-    return content.split('\n').map(line => '> ' + line).join('\n') + '\n';
+  private async processList(element: HTMLElement, marker: string): Promise<string> {
+    let result = '';
+    const listItems = element.querySelectorAll('li');
+    for (let i = 0; i < listItems.length; i++) {
+      const li = listItems[i];
+      const content = (await this.processChildren(li)).trim();
+      if (marker === '1.') {
+        result += `${i + 1}. ${content}\n`;
+      } else {
+        result += `${marker} ${content}\n`;
+      }
+    }
+    return result;
   }
 
   /**
-   * Processes a table element.
-   * @param table Table element.
-   * @returns Markdown for the table.
+   * Processes a blockquote element and converts it to Markdown.
+   * @param element Blockquote element.
+   * @returns Processed Markdown for blockquote.
    */
-  private processTable(table: HTMLElement): string {
+  private async processBlockquote(element: HTMLElement): Promise<string> {
+    const content = (await this.processChildren(element)).trim();
+    return content.split('\n').map((line: string) => `> ${line}`).join('\n') + '\n';
+  }
+
+  /**
+   * Processes a table element and converts it to Markdown.
+   * @param table Table element.
+   * @returns Processed Markdown for table.
+   */
+  private async processTable(table: HTMLElement): Promise<string> {
+    const rows = table.querySelectorAll('tr');
     let result = '';
-    const rows = Array.from(table.querySelectorAll('tr'));
-    
-    if (rows.length === 0) return '';
 
-    // Process header
-    const headerRow = rows.shift();
-    if (headerRow) {
-      const headerCells = Array.from(headerRow.querySelectorAll('th, td'))
-                             .map(cell => this.getTextContent(cell as HTMLElement).replace(/\|/g, '\\|')); // Escape pipes
-      result += `| ${headerCells.join(' | ')} |\n`;
-      result += `|${headerCells.map(() => '---').join('|')}|\n`;
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const cells = row.querySelectorAll('td, th');
+      const cellContents = [];
+      
+      for (const cell of Array.from(cells)) {
+        cellContents.push((await this.processChildren(cell as HTMLElement)).trim().replace(/\|/g, '\\|'));
+      }
+      
+      result += '| ' + cellContents.join(' | ') + ' |\n';
+      
+      // Add header separator after first row
+      if (i === 0) {
+        result += '| ' + cellContents.map(() => '---').join(' | ') + ' |\n';
+      }
     }
-
-    // Process body rows
-    rows.forEach(row => {
-      const cells = Array.from(row.querySelectorAll('td'))
-                       .map(cell => this.getTextContent(cell as HTMLElement).replace(/\|/g, '\\|')); // Escape pipes
-      result += `| ${cells.join(' | ')} |\n`;
-    });
 
     return result;
   }

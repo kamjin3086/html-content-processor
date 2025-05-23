@@ -1,71 +1,41 @@
-# 🧪 Page Type Detection Testing Automation
+# Testing Automation
 
-A comprehensive automated testing system to ensure accuracy and reliability of the page type detection feature.
+Automated testing system for page type detection accuracy and reliability.
 
-## 🎯 Core Features
+## Overview
 
-### 1. **Automated Detection Testing**
-- Tests real websites against expected page types
-- Measures confidence scores and accuracy
-- Handles network errors and retries
-- Generates detailed reports
+- **Real-world testing** against live websites
+- **Automated accuracy measurement** with confidence scoring
+- **URL management system** for test cases
+- **CI/CD integration** with NPM scripts
 
-### 2. **URL Management System**
-- Interactive URL addition/removal
-- Configuration management
-- Export to multiple formats (JSON, CSV, Markdown)
-- Statistics and analytics
+## Quick Start
 
-### 3. **CI/CD Integration**
-- NPM script integration
-- Build-time testing
-- Automated quality assurance
-- Exit codes for CI systems
-
-## 📁 Files Created
-
-### Core Testing Files
-- **`test-urls.json`**: Test URL configuration with 18 initial URLs across 7 page types
-- **`test-detection-accuracy.js`**: Main testing script with network handling and reporting
-- **`test-url-manager.js`**: Interactive URL management tool
-- **`TEST_SUITE_GUIDE.md`**: Comprehensive usage documentation
-
-### Package Integration
-- Updated **`package.json`** with test scripts:
-  - `npm test` → `npm run test:detection`
-  - `npm run test:detection` → Run accuracy tests
-  - `npm run test:ci` → Build + test pipeline
-
-## 🚀 Usage Examples
-
-### Run All Tests
+### Run Tests
 ```bash
-npm test
+npm test                    # Run all detection tests
+npm run test:detection     # Detailed test run
+npm run test:ci           # Build + test pipeline
 ```
 
 ### Manage Test URLs
 ```bash
-# View all URLs
-node test-url-manager.js list
+# View all test URLs
+node tests/test-url-manager.js list
 
-# Add new URL interactively
-node test-url-manager.js add
+# Add new URL interactively  
+node tests/test-url-manager.js add
 
 # Show statistics
-node test-url-manager.js stats
+node tests/test-url-manager.js stats
 
-# Export to CSV
-node test-url-manager.js export csv
+# Quick add via command line
+node tests/test-detection-accuracy.js add blog "https://example.com" "Blog" 0.8
 ```
 
-### Quick URL Addition
-```bash
-node test-detection-accuracy.js add blog "https://example.com" "Example Blog" 0.8
-```
+## Test Coverage
 
-## 📊 Test Coverage
-
-### Page Types (18 URLs total)
+### Page Types (18 URLs)
 - **Search Engine**: 3 URLs (Google, Bing, DuckDuckGo)
 - **Blog**: 3 URLs (GitHub Blog, WordPress, Medium)
 - **Documentation**: 3 URLs (GitHub Docs, MDN, Node.js)
@@ -75,158 +45,143 @@ node test-detection-accuracy.js add blog "https://example.com" "Example Blog" 0.
 - **Social Media**: 2 URLs (Twitter, LinkedIn)
 
 ### Quality Metrics
-- Expected confidence ranges: 60-80%
-- Network timeout: 10 seconds
-- Retry attempts: 2
-- Minimum acceptable confidence: 50%
+- **Expected confidence**: 60-80%
+- **Network timeout**: 10 seconds
+- **Retry attempts**: 2
+- **Pass threshold**: 50% confidence
 
-## 🔧 Configuration
+## Configuration
 
-### Test Settings (`test-urls.json`)
+Located in `tests/test-urls.json`:
+
 ```json
 {
   "testConfig": {
     "timeout": 10000,
     "retryAttempts": 2,
-    "minAcceptableConfidence": 0.5,
-    "userAgent": "Mozilla/5.0 ..."
-  }
+    "minAcceptableConfidence": 0.5
+  },
+  "search-engine": [
+    {
+      "url": "https://google.com",
+      "description": "Google search homepage",
+      "expectedConfidence": 0.9
+    }
+  ]
 }
 ```
 
-### URL Structure
-```json
-{
-  "url": "https://example.com",
-  "description": "Human readable description",
-  "expectedConfidence": 0.8
-}
+## Test Output
+
+### Console Report
 ```
-
-## 📈 Reports and Analytics
-
-### Console Output
-- Real-time test progress
-- Pass/fail results with reasons
-- Confidence score analysis
-- Performance metrics
-
-### JSON Reports
-- Timestamped detailed results
-- Type-specific statistics
-- Failed test analysis
-- Exportable data format
-
-### Example Output
-```
-🤖 Page Type Detection Accuracy Test Suite
+🤖 Page Type Detection Accuracy Test
 📊 Testing SEARCH-ENGINE (3 URLs)
-[1/3] Testing: Google search homepage
-    Expected: search-engine
-    Detected: search-engine  
-    Confidence: 95.0%
+[1/3] Google search homepage
+    Detected: search-engine (95.0%)
     Result: ✅ PASS
 
-📊 TEST RESULTS SUMMARY
-   Total Tests: 18
-   Passed: 17 ✅
-   Failed: 1 ❌
+📊 SUMMARY
+   Total: 18 | Passed: 17 ✅ | Failed: 1 ❌
    Pass Rate: 94.4%
 ```
 
-## 🔄 Maintenance Workflow
-
-### 1. **Regular Testing**
+### JSON Export
 ```bash
-npm run test:ci  # In CI/CD pipeline
+node tests/test-url-manager.js export json > results.json
+node tests/test-url-manager.js export csv > results.csv
 ```
 
-### 2. **URL Management**
+## URL Management
+
+### Interactive Mode
 ```bash
-# Review current URLs
-node test-url-manager.js stats
-
-# Add new test cases
-node test-url-manager.js add
-
-# Export for backup
-node test-url-manager.js export json
+node tests/test-url-manager.js
+# 1. List URLs
+# 2. Add URL  
+# 3. Remove URL
+# 4. Show stats
+# 5. Export data
 ```
 
-### 3. **Configuration Updates**
+### Command Line
 ```bash
-# Update test settings
-node test-url-manager.js config
+# List by type
+node tests/test-url-manager.js list blog
+
+# Add URL
+node tests/test-url-manager.js add documentation "https://docs.example.com"
+
+# Remove URL
+node tests/test-url-manager.js remove "https://old-site.com"
+
+# Show statistics
+node tests/test-url-manager.js stats
 ```
 
-## 🎯 Benefits
+## CI/CD Integration
 
-### **Quality Assurance**
-- Automatic detection of regressions
-- Confidence in detection accuracy
-- Real-world testing against live sites
+### GitHub Actions Example
+```yaml
+name: Test
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm install
+      - run: npm run test:ci
+```
 
-### **Easy Expansion**
-- Interactive URL addition
-- Support for new page types
-- Flexible configuration
+### Exit Codes
+- **0**: All tests passed
+- **1**: Some tests failed  
+- **2**: Configuration error
+- **3**: Network error
 
-### **CI/CD Ready**
-- NPM script integration
-- Exit codes for build systems
-- Automated testing pipeline
+## Features
 
-### **Comprehensive Reporting**
-- Multiple output formats
-- Detailed failure analysis
-- Historical tracking
-
-## 🔧 Advanced Features
-
-### **Network Resilience**
-- Automatic retries on failure
-- Timeout handling
-- Redirect following
+### Network Resilience
+- Automatic retry on timeout
 - Error classification
+- Redirect handling
+- Custom User-Agent support
 
-### **Flexible Testing**
+### Reporting
+- Real-time progress
+- Detailed failure analysis
+- Multiple export formats
+- Historical tracking support
+
+### Flexibility
 - Per-URL confidence thresholds
 - Type-specific configurations
-- Debug mode support
-- Custom User-Agent strings
+- Debug mode for troubleshooting
+- Easy URL addition/removal
 
-### **Data Export**
-- JSON for programmatic use
-- CSV for spreadsheet analysis
-- Markdown for documentation
-- Timestamped backups
+## Maintenance
 
-## 🚀 Getting Started
+### Regular Tasks
+```bash
+# Check test health
+npm run test:detection
 
-1. **Install Dependencies** (already done)
-2. **Run Initial Test**:
-   ```bash
-   npm test
-   ```
-3. **Add Your URLs**:
-   ```bash
-   node test-url-manager.js add
-   ```
-4. **Integrate with CI/CD**:
-   ```yaml
-   - run: npm run test:ci
-   ```
+# Review failing URLs
+node tests/test-url-manager.js stats
 
-## 📝 Summary
+# Update configurations
+vim tests/test-urls.json
 
-This testing automation system provides a robust foundation for ensuring page type detection accuracy. It combines automated testing, easy URL management, comprehensive reporting, and CI/CD integration to maintain high quality standards as the detection system evolves.
+# Backup test data
+node tests/test-url-manager.js export json > backup.json
+```
 
-**Key Achievements:**
-- ✅ 18 initial test URLs across 7 page types
-- ✅ Automated accuracy testing with network resilience  
-- ✅ Interactive URL management tools
-- ✅ CI/CD integration with NPM scripts
-- ✅ Multiple export formats and reporting
-- ✅ Comprehensive documentation and guides
+### Adding New Page Types
+1. Update detection logic in `page-type-detector.ts`
+2. Add test URLs via URL manager
+3. Run tests to verify accuracy
+4. Update documentation
 
-The system is designed to grow with your needs - easily add new page types, expand URL coverage, and maintain detection quality over time. 
+This testing system ensures reliable page type detection across diverse real-world content. 

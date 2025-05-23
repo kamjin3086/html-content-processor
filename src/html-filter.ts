@@ -101,23 +101,23 @@ export class HtmlFilter {
   }
 
   /**
-   * Filters HTML content and returns an array of important content fragments.
-   * @param html HTML string to be filtered
-   * @returns Array of HTML content fragments
+   * Filters HTML content and returns an array of HTML blocks.
+   * @param html HTML string
+   * @returns Array of HTML blocks after filtering
    */
-  public filterContent(html: string): string[] {
-    if (!html || typeof html !== 'string') {
+  public async filterContent(html: string): Promise<string[]> {
+    if (!html) {
       return [];
     }
 
-    let doc = parseHTML(html);
+    let doc = await parseHTML(html);
     
     // If no body, add one
     if (!doc.body) {
-      doc = parseHTML(`<body>${html}</body>`);
+      doc = await parseHTML(`<body>${html}</body>`);
     }
 
-    this.removeComments(doc);
+    await this.removeComments(doc);
     this.removeUnwantedTags(doc);
 
     const body = doc.body;
@@ -138,8 +138,8 @@ export class HtmlFilter {
    * @param html HTML string
    * @returns Concatenated HTML string after filtering
    */
-  public filterContentAsString(html: string): string {
-    const blocks = this.filterContent(html);
+  public async filterContentAsString(html: string): Promise<string> {
+    const blocks = await this.filterContent(html);
     return blocks.join('');
   }
 
@@ -147,9 +147,9 @@ export class HtmlFilter {
    * Removes HTML comments from the document.
    * @param doc DOM document
    */
-  private removeComments(doc: Document): void {
-    const nodeFilter = getNodeFilter();
-    const document = getDocument();
+  private async removeComments(doc: Document): Promise<void> {
+    const nodeFilter = await getNodeFilter();
+    const document = await getDocument();
     
     const nodeIterator = document.createNodeIterator(
       doc,

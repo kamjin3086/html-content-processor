@@ -181,15 +181,15 @@ export class PageTypeDetector {
   ];
 
   /**
-   * Detect page type and recommend optimal filtering parameters
+   * Detects the page type based on HTML content and optional URL
    */
-  public detectPageType(html: string, url?: string): PageTypeResult {
+  public async detectPageType(html: string, url?: string): Promise<PageTypeResult> {
     if (!html || typeof html !== 'string') {
       return this.createUnknownResult('Empty or invalid HTML content');
     }
 
     try {
-      const doc = parseHTML(html);
+      const doc = await parseHTML(html);
       const characteristics = this.analyzePageCharacteristics(html, doc);
       const typeScores = this.calculateTypeScores(html, doc, characteristics, url);
       

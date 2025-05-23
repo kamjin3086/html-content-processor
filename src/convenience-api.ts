@@ -8,42 +8,37 @@ import { MarkdownResult } from './types';
  * @param options Conversion options
  * @returns Markdown string
  */
-export function htmlToMarkdown(html: string, options?: ConvertOptions): string {
-  const processor = HtmlProcessor.from(html, options);
+export async function htmlToMarkdown(html: string, options?: ConvertOptions): Promise<string> {
+  const processor = HtmlProcessor.from(html, options?.baseUrl ? { baseUrl: options.baseUrl } : {});
   
   // Apply filtering if filter options are provided
   if (options && (options.threshold !== undefined || options.strategy !== undefined || options.ratio !== undefined)) {
-    processor.filter(options);
+    await processor.filter(options);
+  } else {
+    await processor.filter();
   }
   
-  if (options?.baseUrl) {
-    processor.withBaseUrl(options.baseUrl);
-  }
-  
-  const result = processor.toMarkdown(options);
+  const result = await processor.toMarkdown(options);
   return result.content;
 }
 
 /**
- * Convert HTML to Markdown with citations and references
+ * Convert HTML to Markdown with citations
  * @param html HTML content to convert
  * @param baseUrl Base URL for resolving relative links
- * @param options Additional options
- * @returns Complete markdown with citations and references
+ * @param options Conversion options
+ * @returns Markdown string with citations
  */
-export function htmlToMarkdownWithCitations(html: string, baseUrl?: string, options?: ConvertOptions): string {
-  const converterOptions = { ...options, citations: true };
-  const processor = HtmlProcessor.from(html, converterOptions);
+export async function htmlToMarkdownWithCitations(html: string, baseUrl?: string, options?: ConvertOptions): Promise<string> {
+  const processor = HtmlProcessor.from(html, { baseUrl });
   
   if (options && (options.threshold !== undefined || options.strategy !== undefined || options.ratio !== undefined)) {
-    processor.filter(options);
+    await processor.filter(options);
+  } else {
+    await processor.filter();
   }
   
-  if (baseUrl) {
-    processor.withBaseUrl(baseUrl);
-  }
-  
-  const result = processor.toMarkdown(converterOptions);
+  const result = await processor.toMarkdown({ ...options, citations: true });
   return result.contentWithCitations + (result.references ? '\n\n' + result.references : '');
 }
 
@@ -53,17 +48,14 @@ export function htmlToMarkdownWithCitations(html: string, baseUrl?: string, opti
  * @param options Filter options
  * @returns Plain text string
  */
-export function htmlToText(html: string, options?: FilterOptions): string {
+export async function htmlToText(html: string, options?: FilterOptions): Promise<string> {
   const processor = HtmlProcessor.from(html, { 
     filter: options,
     converter: { ignoreLinks: true, ignoreImages: true }
   });
   
-  if (options) {
-    processor.filter(options);
-  }
-  
-  return processor.toText();
+  await processor.filter(options);
+  return await processor.toText();
 }
 
 /**
@@ -72,9 +64,9 @@ export function htmlToText(html: string, options?: FilterOptions): string {
  * @param options Filter options
  * @returns Cleaned HTML string
  */
-export function cleanHtml(html: string, options?: FilterOptions): string {
+export async function cleanHtml(html: string, options?: FilterOptions): Promise<string> {
   const processor = HtmlProcessor.from(html, { filter: options });
-  processor.filter(options);
+  await processor.filter(options);
   return processor.toString();
 }
 
@@ -84,10 +76,10 @@ export function cleanHtml(html: string, options?: FilterOptions): string {
  * @param options Filter options
  * @returns Array of HTML content fragments
  */
-export function extractContent(html: string, options?: FilterOptions): string[] {
+export async function extractContent(html: string, options?: FilterOptions): Promise<string[]> {
   const processor = HtmlProcessor.from(html, { filter: options });
-  processor.filter(options);
-  return processor.toArray();
+  await processor.filter(options);
+  return await processor.toArray();
 }
 
 /**
@@ -96,14 +88,10 @@ export function extractContent(html: string, options?: FilterOptions): string[] 
  * @param baseUrl Base URL for resolving relative links
  * @returns Markdown string
  */
-export function htmlToArticleMarkdown(html: string, baseUrl?: string): string {
-  const processor = HtmlProcessor.from(html, { 
-    preset: 'article',
-    baseUrl 
-  });
-  
-  processor.filter();
-  const result = processor.toMarkdown();
+export async function htmlToArticleMarkdown(html: string, baseUrl?: string): Promise<string> {
+  const processor = HtmlProcessor.from(html, { preset: 'article', baseUrl });
+  await processor.filter();
+  const result = await processor.toMarkdown();
   return result.content;
 }
 
@@ -113,14 +101,10 @@ export function htmlToArticleMarkdown(html: string, baseUrl?: string): string {
  * @param baseUrl Base URL for resolving relative links
  * @returns Markdown string
  */
-export function htmlToBlogMarkdown(html: string, baseUrl?: string): string {
-  const processor = HtmlProcessor.from(html, { 
-    preset: 'blog',
-    baseUrl 
-  });
-  
-  processor.filter();
-  const result = processor.toMarkdown();
+export async function htmlToBlogMarkdown(html: string, baseUrl?: string): Promise<string> {
+  const processor = HtmlProcessor.from(html, { preset: 'blog', baseUrl });
+  await processor.filter();
+  const result = await processor.toMarkdown();
   return result.content;
 }
 
@@ -130,14 +114,10 @@ export function htmlToBlogMarkdown(html: string, baseUrl?: string): string {
  * @param baseUrl Base URL for resolving relative links
  * @returns Markdown string
  */
-export function htmlToNewsMarkdown(html: string, baseUrl?: string): string {
-  const processor = HtmlProcessor.from(html, { 
-    preset: 'news',
-    baseUrl 
-  });
-  
-  processor.filter();
-  const result = processor.toMarkdown();
+export async function htmlToNewsMarkdown(html: string, baseUrl?: string): Promise<string> {
+  const processor = HtmlProcessor.from(html, { preset: 'news', baseUrl });
+  await processor.filter();
+  const result = await processor.toMarkdown();
   return result.content;
 }
 
@@ -146,9 +126,9 @@ export function htmlToNewsMarkdown(html: string, baseUrl?: string): string {
  * @param html HTML content to clean
  * @returns Cleaned HTML string
  */
-export function strictCleanHtml(html: string): string {
+export async function strictCleanHtml(html: string): Promise<string> {
   const processor = HtmlProcessor.from(html, { preset: 'strict' });
-  processor.filter();
+  await processor.filter();
   return processor.toString();
 }
 
@@ -157,9 +137,9 @@ export function strictCleanHtml(html: string): string {
  * @param html HTML content to clean
  * @returns Cleaned HTML string
  */
-export function gentleCleanHtml(html: string): string {
+export async function gentleCleanHtml(html: string): Promise<string> {
   const processor = HtmlProcessor.from(html, { preset: 'loose' });
-  processor.filter();
+  await processor.filter();
   return processor.toString();
 }
 
@@ -179,15 +159,15 @@ export function createProcessor(options?: ProcessorOptions): HtmlProcessor {
  * @param options Additional processing options
  * @returns Markdown result
  */
-export function htmlToMarkdownAuto(
+export async function htmlToMarkdownAuto(
   html: string, 
   url?: string, 
   options: Partial<ProcessorOptions> = {}
-): MarkdownResult {
-  return HtmlProcessor.from(html, options)
-    .withAutoDetection(url)
-    .filter()
-    .toMarkdown();
+): Promise<MarkdownResult> {
+  const processor = await HtmlProcessor.from(html, options)
+    .withAutoDetection(url);
+  await processor.filter();
+  return await processor.toMarkdown();
 }
 
 /**
@@ -197,15 +177,15 @@ export function htmlToMarkdownAuto(
  * @param options Additional processing options
  * @returns Clean HTML string
  */
-export function cleanHtmlAuto(
+export async function cleanHtmlAuto(
   html: string, 
   url?: string, 
   options: Partial<ProcessorOptions> = {}
-): string {
-  return HtmlProcessor.from(html, options)
-    .withAutoDetection(url)
-    .filter()
-    .toString();
+): Promise<string> {
+  const processor = await HtmlProcessor.from(html, options)
+    .withAutoDetection(url);
+  await processor.filter();
+  return processor.toString();
 }
 
 /**
@@ -215,21 +195,21 @@ export function cleanHtmlAuto(
  * @param options Additional processing options
  * @returns Detailed extraction result with page type information
  */
-export function extractContentAuto(
+export async function extractContentAuto(
   html: string, 
   url?: string, 
   options: Partial<ProcessorOptions> = {}
-): {
+): Promise<{
   markdown: MarkdownResult;
   pageType: import('./page-type-detector').PageTypeResult | null;
   cleanHtml: string;
-} {
-  const processor = HtmlProcessor.from(html, options)
-    .withAutoDetection(url)
-    .filter();
+}> {
+  const processor = await HtmlProcessor.from(html, options)
+    .withAutoDetection(url);
+  await processor.filter();
     
   return {
-    markdown: processor.toMarkdown(),
+    markdown: await processor.toMarkdown(),
     pageType: processor.getPageTypeResult(),
     cleanHtml: processor.toString()
   };
