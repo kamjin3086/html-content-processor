@@ -3,6 +3,8 @@
  * Based on the Python version of PruningContentFilter
  */
 
+import { parseHTML, getDocument, getNodeFilter } from './dom-adapter';
+
 interface FilterMetrics {
   node: HTMLElement;
   tagName: string;
@@ -42,98 +44,92 @@ export class HtmlFilter {
 
   constructor(minWordThreshold?: number, thresholdType: 'fixed' | 'dynamic' = 'fixed', threshold: number = 0.48) {
     this.includedTags = new Set([
-      // Main structure
-      "article", "main", "section", "div",
-      // List structure
-      "ul", "ol", "li", "dl", "dt", "dd",
-      // Text content
-      "p", "span", "blockquote", "pre", "code",
-      // Headings
-      "h1", "h2", "h3", "h4", "h5", "h6",
-      // Tables
-      "table", "thead", "tbody", "tr", "td", "th",
-      // Other semantic elements
-      "figure", "figcaption", "details", "summary",
-      // Text formatting
-      "em", "strong", "b", "i", "mark", "small",
-      // Rich content
-      "time", "address", "cite", "q",
+      'p', 'div', 'article', 'section', 'main', 'content', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'blockquote', 'pre', 'code', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'td', 'th',
+      'figure', 'figcaption', 'img', 'video', 'audio', 'embed', 'iframe', 'object',
+      'strong', 'em', 'b', 'i', 'u', 'mark', 'small', 'del', 'ins', 'sub', 'sup',
+      'a', 'span', 'time', 'address', 'cite', 'q', 'dfn', 'abbr', 'data', 'var', 'samp', 'kbd',
+      'br', 'hr', 'wbr'
     ]);
 
     this.excludedTags = new Set([
-      "nav", "footer", "header", "aside", "script", "style", "form", "iframe", "noscript"
+      'nav', 'header', 'footer', 'aside', 'menu', 'menuitem',
+      'script', 'style', 'meta', 'link', 'title', 'head',
+      'noscript', 'template', 'slot',
+      'form', 'input', 'textarea', 'button', 'select', 'option', 'optgroup', 'label', 'fieldset', 'legend',
+      'canvas', 'svg', 'math'
     ]);
 
-    this.headerTags = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
-    this.negativePattern = /nav|footer|header|sidebar|ads|comment|promo|advert|social|share/i;
-    this.minWordCount = minWordThreshold || 2;
-    this.thresholdType = thresholdType;
-    this.threshold = threshold;
+    this.headerTags = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
 
-    // Tag importance configuration
+    this.negativePattern = /comment|meta|footer|footnote|sidebar|nav|advertisement|banner|social|share|related|recommended|trending|popular/i;
+
+    this.minWordCount = minWordThreshold || 3;
+    this.threshold = threshold;
+    this.thresholdType = thresholdType;
+
     this.tagImportance = {
-      "article": 1.5,
-      "main": 1.4,
-      "section": 1.3,
-      "p": 1.2,
-      "h1": 1.4,
-      "h2": 1.3,
-      "h3": 1.2,
-      "div": 0.7,
-      "span": 0.6,
+      'article': 1.2,
+      'main': 1.2,
+      'section': 1.1,
+      'div': 0.8,
+      'p': 1.0,
+      'h1': 1.3, 'h2': 1.25, 'h3': 1.2, 'h4': 1.15, 'h5': 1.1, 'h6': 1.05,
+      'blockquote': 1.1,
+      'ul': 0.9, 'ol': 0.9, 'li': 0.85,
+      'table': 0.9, 'tr': 0.8, 'td': 0.8, 'th': 0.85,
+      'figure': 1.0, 'figcaption': 0.9,
+      'code': 0.9, 'pre': 0.9,
+      'strong': 0.95, 'em': 0.95, 'b': 0.9, 'i': 0.9,
+      'a': 0.7, 'span': 0.7
     };
 
-    // Metric configuration
+    this.tagWeights = { // This seems to overlap with tagImportance. Consider consolidating or clarifying the distinction.
+      'article': 1.0,
+      'main': 1.0,
+      'section': 0.9,
+      'div': 0.5,
+      'p': 0.8,
+      'h1': 1.0, 'h2': 0.95, 'h3': 0.9, 'h4': 0.85, 'h5': 0.8, 'h6': 0.75,
+      'blockquote': 0.8,
+      'ul': 0.7, 'ol': 0.7, 'li': 0.6,
+      'table': 0.7, 'tr': 0.6, 'td': 0.6, 'th': 0.65,
+      'figure': 0.8, 'figcaption': 0.7,
+      'code': 0.6, 'pre': 0.6
+    };
+
     this.metricConfig = {
       textDensity: true,
       linkDensity: true,
       tagWeight: true,
       classIdWeight: true,
-      textLength: true,
+      textLength: true
     };
 
     this.metricWeights = {
-      textDensity: 0.4,
+      textDensity: 0.3,
       linkDensity: 0.2,
-      tagWeight: 0.2,
-      classIdWeight: 0.1,
-      textLength: 0.1,
-    };
-
-    this.tagWeights = {
-      "div": 0.5,
-      "p": 1.0,
-      "article": 1.5,
-      "section": 1.0,
-      "span": 0.3,
-      "li": 0.5,
-      "ul": 0.5,
-      "ol": 0.5,
-      "h1": 1.2,
-      "h2": 1.1,
-      "h3": 1.0,
-      "h4": 0.9,
-      "h5": 0.8,
-      "h6": 0.7,
+      tagWeight: 0.25,
+      classIdWeight: 0.15,
+      textLength: 0.1
     };
   }
 
   /**
-   * Filters HTML content and returns an array of filtered HTML fragments.
-   * @param html HTML string
-   * @returns Array of filtered HTML fragments
+   * Filters HTML content and returns an array of important content fragments.
+   * @param html HTML string to be filtered
+   * @returns Array of HTML content fragments
    */
   public filterContent(html: string): string[] {
     if (!html || typeof html !== 'string') {
       return [];
     }
 
-    const parser = new DOMParser();
-    let doc = parser.parseFromString(html, 'text/html');
+    let doc = parseHTML(html);
     
     // If no body, add one
     if (!doc.body) {
-      doc = parser.parseFromString(`<body>${html}</body>`, 'text/html');
+      doc = parseHTML(`<body>${html}</body>`);
     }
 
     this.removeComments(doc);
@@ -167,10 +163,12 @@ export class HtmlFilter {
    * @param doc DOM document
    */
   private removeComments(doc: Document): void {
+    const nodeFilter = getNodeFilter();
+    const document = getDocument();
+    
     const nodeIterator = document.createNodeIterator(
       doc,
-      NodeFilter.SHOW_COMMENT,
-      // @ts-ignore
+      nodeFilter.SHOW_COMMENT,
       null 
     );
     

@@ -27,6 +27,13 @@ A powerful, professional library for intelligent HTML content processing, cleani
 npm install html-content-processor
 ```
 
+For enhanced Node.js performance, also install jsdom:
+```bash
+npm install jsdom
+```
+
+> **Cross-Environment Support**: Works in both Node.js and browser environments automatically. See our [Cross-Environment Guide](./CROSS_ENVIRONMENT_GUIDE.md) for details.
+
 ### Basic Usage
 
 ```javascript
@@ -219,6 +226,22 @@ try {
 }
 ```
 
+## 🌍 Cross-Environment Support
+
+Works seamlessly in both **Node.js** and **browser** environments:
+
+```javascript
+import { isNode, isBrowser, domAdapter } from 'html-content-processor';
+
+console.log('Environment:', isNode() ? 'Node.js' : 'Browser');
+console.log('DOM Support:', domAdapter.hasJSDOM() ? 'Full' : 'Basic');
+
+// Environment-specific optimizations are automatic
+const result = htmlToMarkdown(html); // Works everywhere!
+```
+
+📘 **See [Cross-Environment Guide](./CROSS_ENVIRONMENT_GUIDE.md) for framework integration examples**
+
 ## 🔗 API Reference
 
 ### Core Functions
@@ -311,6 +334,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - 📖 [Documentation](./API_USAGE_EXAMPLES.md)
+- 🌍 [Cross-Environment Guide](./CROSS_ENVIRONMENT_GUIDE.md)
 - 🐛 [Issue Tracker](https://github.com/kamjin3086/html-content-processor/issues)
 - 💬 [Discussions](https://github.com/kamjin3086/html-content-processor/discussions)
 

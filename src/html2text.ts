@@ -2,6 +2,7 @@
  * HTML to text conversion utility, used for converting HTML to Markdown.
  */
 import { Html2TextOptions } from './types';
+import { parseHTML, getNode } from './dom-adapter';
 
 export class CustomHtml2Text {
   private options: Html2TextOptions;
@@ -20,10 +21,10 @@ export class CustomHtml2Text {
       ignoreLinks: false,
       ignoreImages: false,
       protectLinks: false,
-      singleLineBreak: true,
+      singleLineBreak: false,
       markCode: true,
       escapeSnob: false,
-      skipInternalLinks: false,
+      skipInternalLinks: true,
       includeSuperSub: false,
       ...options
     };
@@ -45,8 +46,7 @@ export class CustomHtml2Text {
   handle(html: string): string {
     if (!html) return '';
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
+    const doc = parseHTML(html);
     
     this.cleanDocument(doc);
     
@@ -227,6 +227,7 @@ export class CustomHtml2Text {
   private processChildren(element: HTMLElement): string {
     if (!element) return '';
     
+    const Node = getNode();
     let result = '';
     Array.from(element.childNodes).forEach(node => {
       if (node.nodeType === Node.TEXT_NODE) {

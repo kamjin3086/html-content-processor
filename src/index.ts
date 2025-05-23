@@ -14,6 +14,16 @@ export { HtmlProcessor } from './html-processor';
 export { HtmlFilter } from './html-filter';
 export { DefaultMarkdownGenerator } from './markdown-generator';
 
+// DOM adapter for cross-environment compatibility
+export { 
+  domAdapter,
+  parseHTML,
+  getDOMParser,
+  getDocument,
+  isNode,
+  isBrowser 
+} from './dom-adapter';
+
 // Type definitions
 export {
   ProcessorOptions,
