@@ -10,6 +10,10 @@ export interface ProcessorOptions {
   baseUrl?: string;
   /** Preset configuration name */
   preset?: PresetName;
+  /** Enable automatic page type detection */
+  autoDetect?: boolean;
+  /** Debug mode for additional logging */
+  debug?: boolean;
 }
 
 /**

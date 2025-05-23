@@ -48,6 +48,15 @@ export {
   Html2TextOptions
 } from './types';
 
+// Page type detection
+export {
+  PageTypeDetector,
+  pageTypeDetector,
+  PageTypeResult,
+  PageType,
+  PageCharacteristics
+} from './page-type-detector';
+
 // Convenience functions
 export {
   htmlToMarkdown,
@@ -60,7 +69,10 @@ export {
   htmlToNewsMarkdown,
   strictCleanHtml,
   gentleCleanHtml,
-  createProcessor
+  createProcessor,
+  htmlToMarkdownAuto,
+  cleanHtmlAuto,
+  extractContentAuto
 } from './convenience-api';
 
 // Presets management

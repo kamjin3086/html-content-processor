@@ -14,6 +14,7 @@ import {
 } from './types';
 import { getPreset, mergeWithPreset } from './presets';
 import { pluginRegistry } from './plugin-manager';
+import { pageTypeDetector, PageTypeResult } from './page-type-detector';
 
 /**
  * Main HTML processor class with fluent API
@@ -25,6 +26,11 @@ export class HtmlProcessor {
   private currentHtml: string;
   private baseUrl: string;
   private processed: boolean = false;
+  private dom: Document | null = null;
+  private filteredDom: Document | null = null;
+  private filterStats: { processingTime: number; filteredElements: number } | null = null;
+  private pageTypeResult: PageTypeResult | null = null;
+  private autoDetectEnabled: boolean = false;
 
   /**
    * Create a new HtmlProcessor instance
@@ -124,7 +130,9 @@ export class HtmlProcessor {
       this.processed = true;
 
       const processingTime = Date.now() - startTime;
-      console.log(`[HtmlProcessor] Filtering completed in ${processingTime}ms`);
+      if (this.options.debug) {
+        console.log(`[HtmlProcessor] Filtering completed in ${processingTime}ms`);
+      }
 
       return this;
     } catch (error: unknown) {
@@ -399,5 +407,82 @@ export class HtmlProcessor {
    */
   private countElements(html: string): number {
     return this.countMatches(html, /<[^>]+>/g);
+  }
+
+  /**
+   * Enable automatic page type detection and parameter optimization
+   * @param url Optional URL for better detection accuracy
+   * @returns This processor instance for chaining
+   */
+  withAutoDetection(url?: string): HtmlProcessor {
+    this.autoDetectEnabled = true;
+    
+    if (this.currentHtml) {
+      this.pageTypeResult = pageTypeDetector.detectPageType(this.currentHtml, url || this.baseUrl);
+      
+      if (this.options.debug) {
+        console.log(`[HtmlProcessor] Auto-detected page type: ${this.pageTypeResult.type} (confidence: ${(this.pageTypeResult.confidence * 100).toFixed(1)}%)`);
+        console.log(`[HtmlProcessor] Detection reasons:`, this.pageTypeResult.reasons);
+      }
+      
+      // Apply auto-detected filter options
+      this.options.filter = {
+        ...this.options.filter,
+        ...this.pageTypeResult.filterOptions
+      };
+      
+      // Recreate filter with new options
+      this.htmlFilter = this.createHtmlFilter();
+    }
+    
+    return this;
+  }
+
+  /**
+   * Get page type detection result
+   * @returns Page type detection result or null if not detected
+   */
+  getPageTypeResult(): PageTypeResult | null {
+    return this.pageTypeResult;
+  }
+
+  /**
+   * Check if auto-detection is enabled
+   * @returns True if auto-detection is enabled
+   */
+  isAutoDetectionEnabled(): boolean {
+    return this.autoDetectEnabled;
+  }
+
+  /**
+   * Manually set page type and apply corresponding filter options
+   * @param pageType Page type to apply
+   * @returns This processor instance for chaining
+   */
+  withPageType(pageType: string): HtmlProcessor {
+    if (this.currentHtml) {
+      // Create a mock detection result
+      this.pageTypeResult = pageTypeDetector.detectPageType('');
+      this.pageTypeResult.type = pageType as any;
+      this.pageTypeResult.confidence = 1.0;
+      this.pageTypeResult.reasons = [`Manually set to ${pageType}`];
+      
+      // Get filter options for the specified type
+      const filterOptions = (pageTypeDetector as any).getFilterOptionsForType(pageType, this.pageTypeResult.characteristics);
+      
+      this.options.filter = {
+        ...this.options.filter,
+        ...filterOptions
+      };
+      
+      // Recreate filter with new options
+      this.htmlFilter = this.createHtmlFilter();
+      
+      if (this.options.debug) {
+        console.log(`[HtmlProcessor] Manually set page type: ${pageType}`);
+      }
+    }
+    
+    return this;
   }
 } 

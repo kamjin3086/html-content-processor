@@ -1,5 +1,6 @@
 import { HtmlProcessor } from './html-processor';
 import { ConvertOptions, ProcessorOptions, FilterOptions } from './types';
+import { MarkdownResult } from './types';
 
 /**
  * Convert HTML to Markdown with optional configuration
@@ -169,4 +170,67 @@ export function gentleCleanHtml(html: string): string {
  */
 export function createProcessor(options?: ProcessorOptions): HtmlProcessor {
   return new HtmlProcessor(options);
+}
+
+/**
+ * Convert HTML to Markdown with automatic page type detection
+ * @param html HTML content
+ * @param url Optional URL for better detection accuracy
+ * @param options Additional processing options
+ * @returns Markdown result
+ */
+export function htmlToMarkdownAuto(
+  html: string, 
+  url?: string, 
+  options: Partial<ProcessorOptions> = {}
+): MarkdownResult {
+  return HtmlProcessor.from(html, options)
+    .withAutoDetection(url)
+    .filter()
+    .toMarkdown();
+}
+
+/**
+ * Clean HTML with automatic page type detection
+ * @param html HTML content
+ * @param url Optional URL for better detection accuracy
+ * @param options Additional processing options
+ * @returns Clean HTML string
+ */
+export function cleanHtmlAuto(
+  html: string, 
+  url?: string, 
+  options: Partial<ProcessorOptions> = {}
+): string {
+  return HtmlProcessor.from(html, options)
+    .withAutoDetection(url)
+    .filter()
+    .toString();
+}
+
+/**
+ * Extract content with automatic page type detection and return detailed result
+ * @param html HTML content
+ * @param url Optional URL for better detection accuracy
+ * @param options Additional processing options
+ * @returns Detailed extraction result with page type information
+ */
+export function extractContentAuto(
+  html: string, 
+  url?: string, 
+  options: Partial<ProcessorOptions> = {}
+): {
+  markdown: MarkdownResult;
+  pageType: import('./page-type-detector').PageTypeResult | null;
+  cleanHtml: string;
+} {
+  const processor = HtmlProcessor.from(html, options)
+    .withAutoDetection(url)
+    .filter();
+    
+  return {
+    markdown: processor.toMarkdown(),
+    pageType: processor.getPageTypeResult(),
+    cleanHtml: processor.toString()
+  };
 } 

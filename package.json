@@ -6,7 +6,11 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc && webpack --mode production",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run test:detection",
+    "test:detection": "node tests/test-detection-accuracy.js",
+    "test:detection:add": "node tests/test-detection-accuracy.js add",
+    "test:ci": "npm run build && npm run test:detection",
+    "test:url:manage": "node tests/test-url-manager.js",
     "prepare": "npm run build",
     "dev": "webpack serve --mode development",
     "update-docs-version": "node scripts/update-docs-version.js",

@@ -1,0 +1,114 @@
+{
+  "testUrls": {
+    "search-engine": [
+      {
+        "url": "https://www.google.com",
+        "description": "Google search homepage",
+        "expectedConfidence": 0.8
+      },
+      {
+        "url": "https://www.bing.com",
+        "description": "Bing search homepage", 
+        "expectedConfidence": 0.8
+      },
+      {
+        "url": "https://duckduckgo.com",
+        "description": "DuckDuckGo search homepage",
+        "expectedConfidence": 0.8
+      }
+    ],
+    "blog": [
+      {
+        "url": "https://blog.github.com",
+        "description": "GitHub Blog",
+        "expectedConfidence": 0.7
+      },
+      {
+        "url": "https://wordpress.com/blog",
+        "description": "WordPress Blog", 
+        "expectedConfidence": 0.7
+      },
+      {
+        "url": "https://medium.com/@example",
+        "description": "Medium article page",
+        "expectedConfidence": 0.6
+      }
+    ],
+    "documentation": [
+      {
+        "url": "https://docs.github.com",
+        "description": "GitHub Documentation",
+        "expectedConfidence": 0.8
+      },
+      {
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+        "description": "MDN JavaScript Documentation",
+        "expectedConfidence": 0.8
+      },
+      {
+        "url": "https://nodejs.org/en/docs",
+        "description": "Node.js Documentation",
+        "expectedConfidence": 0.7
+      }
+    ],
+    "news": [
+      {
+        "url": "https://www.bbc.com/news",
+        "description": "BBC News Homepage",
+        "expectedConfidence": 0.7
+      },
+      {
+        "url": "https://techcrunch.com",
+        "description": "TechCrunch News",
+        "expectedConfidence": 0.7
+      },
+      {
+        "url": "https://news.ycombinator.com",
+        "description": "Hacker News",
+        "expectedConfidence": 0.6
+      }
+    ],
+    "e-commerce": [
+      {
+        "url": "https://www.amazon.com",
+        "description": "Amazon Homepage",
+        "expectedConfidence": 0.7
+      },
+      {
+        "url": "https://shopify.com",
+        "description": "Shopify Store",
+        "expectedConfidence": 0.6
+      }
+    ],
+    "forum": [
+      {
+        "url": "https://stackoverflow.com",
+        "description": "Stack Overflow",
+        "expectedConfidence": 0.8
+      },
+      {
+        "url": "https://www.reddit.com",
+        "description": "Reddit Homepage",
+        "expectedConfidence": 0.7
+      }
+    ],
+    "social-media": [
+      {
+        "url": "https://twitter.com",
+        "description": "Twitter/X Homepage",
+        "expectedConfidence": 0.7
+      },
+      {
+        "url": "https://www.linkedin.com",
+        "description": "LinkedIn Homepage",
+        "expectedConfidence": 0.7
+      }
+    ]
+  },
+  "testConfig": {
+    "timeout": 10000,
+    "retryAttempts": 2,
+    "minAcceptableConfidence": 0.5,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+  }
+} 

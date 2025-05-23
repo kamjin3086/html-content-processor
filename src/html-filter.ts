@@ -26,7 +26,6 @@ export class HtmlFilter {
   private threshold: number;
   private thresholdType: 'fixed' | 'dynamic';
   private tagImportance: TagWeights;
-  private tagWeights: TagWeights; // Consider removing if redundant with tagImportance or clarifying its specific use
   private metricConfig: {
     textDensity: boolean;
     linkDensity: boolean;
@@ -42,7 +41,7 @@ export class HtmlFilter {
     textLength: number;
   };
 
-  constructor(minWordThreshold?: number, thresholdType: 'fixed' | 'dynamic' = 'fixed', threshold: number = 0.48) {
+  constructor(minWordThreshold?: number, thresholdType: 'fixed' | 'dynamic' = 'dynamic', threshold: number = 0.48) {
     this.includedTags = new Set([
       'p', 'div', 'article', 'section', 'main', 'content', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
       'blockquote', 'pre', 'code', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'td', 'th',
@@ -62,40 +61,26 @@ export class HtmlFilter {
 
     this.headerTags = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
 
-    this.negativePattern = /comment|meta|footer|footnote|sidebar|nav|advertisement|banner|social|share|related|recommended|trending|popular/i;
+    this.negativePattern = /comment|meta|footer|footnote|sidebar|nav|advertisement|banner|social|share|related|recommended|trending|popular|ads?|popup|modal|overlay|cookie|consent|notification|breadcrumb|pagination|search-suggest|autocomplete/i;
 
-    this.minWordCount = minWordThreshold || 3;
+    this.minWordCount = minWordThreshold || 2;
     this.threshold = threshold;
     this.thresholdType = thresholdType;
 
     this.tagImportance = {
-      'article': 1.2,
-      'main': 1.2,
-      'section': 1.1,
-      'div': 0.8,
-      'p': 1.0,
-      'h1': 1.3, 'h2': 1.25, 'h3': 1.2, 'h4': 1.15, 'h5': 1.1, 'h6': 1.05,
+      'article': 1.5,
+      'main': 1.5,
+      'section': 1.2,
+      'div': 0.6,
+      'p': 1.1,
+      'h1': 1.4, 'h2': 1.3, 'h3': 1.2, 'h4': 1.15, 'h5': 1.1, 'h6': 1.05,
       'blockquote': 1.1,
       'ul': 0.9, 'ol': 0.9, 'li': 0.85,
       'table': 0.9, 'tr': 0.8, 'td': 0.8, 'th': 0.85,
       'figure': 1.0, 'figcaption': 0.9,
       'code': 0.9, 'pre': 0.9,
       'strong': 0.95, 'em': 0.95, 'b': 0.9, 'i': 0.9,
-      'a': 0.7, 'span': 0.7
-    };
-
-    this.tagWeights = { // This seems to overlap with tagImportance. Consider consolidating or clarifying the distinction.
-      'article': 1.0,
-      'main': 1.0,
-      'section': 0.9,
-      'div': 0.5,
-      'p': 0.8,
-      'h1': 1.0, 'h2': 0.95, 'h3': 0.9, 'h4': 0.85, 'h5': 0.8, 'h6': 0.75,
-      'blockquote': 0.8,
-      'ul': 0.7, 'ol': 0.7, 'li': 0.6,
-      'table': 0.7, 'tr': 0.6, 'td': 0.6, 'th': 0.65,
-      'figure': 0.8, 'figcaption': 0.7,
-      'code': 0.6, 'pre': 0.6
+      'a': 0.8, 'span': 0.6
     };
 
     this.metricConfig = {
@@ -107,8 +92,8 @@ export class HtmlFilter {
     };
 
     this.metricWeights = {
-      textDensity: 0.3,
-      linkDensity: 0.2,
+      textDensity: 0.35,
+      linkDensity: 0.15,
       tagWeight: 0.25,
       classIdWeight: 0.15,
       textLength: 0.1
@@ -193,6 +178,7 @@ export class HtmlFilter {
    * @param doc DOM document
    */
   private removeUnwantedTags(doc: Document): void {
+    // Remove standard excluded tags
     this.excludedTags.forEach(tag => {
       const elements = doc.getElementsByTagName(tag);
       // Convert to array as the collection changes during iteration
@@ -200,6 +186,72 @@ export class HtmlFilter {
         element.parentNode?.removeChild(element);
       });
     });
+
+    // Remove elements with noise-indicating attributes
+    const noiseSelectors = [
+      // Hidden elements
+      '[style*="display:none"]',
+      '[style*="visibility:hidden"]',
+      '[hidden]',
+      
+      // Ad-related
+      '[class*="ad"]', '[id*="ad"]',
+      '[class*="advertisement"]', '[id*="advertisement"]',
+      '[class*="banner"]', '[id*="banner"]',
+      
+      // Search engine specific noise
+      '[class*="suggest"]', '[id*="suggest"]',
+      '[class*="autocomplete"]', '[id*="autocomplete"]',
+      '[class*="dropdown"]', '[id*="dropdown"]',
+      '[class*="popup"]', '[id*="popup"]',
+      '[class*="modal"]', '[id*="modal"]',
+      '[class*="overlay"]', '[id*="overlay"]',
+      
+      // Navigation and UI noise
+      '[class*="breadcrumb"]', '[id*="breadcrumb"]',
+      '[class*="pagination"]', '[id*="pagination"]',
+      '[class*="toolbar"]', '[id*="toolbar"]',
+      '[class*="sidebar"]', '[id*="sidebar"]',
+      
+      // Cookie and notification banners
+      '[class*="cookie"]', '[id*="cookie"]',
+      '[class*="consent"]', '[id*="consent"]',
+      '[class*="notification"]', '[id*="notification"]'
+    ];
+
+    noiseSelectors.forEach(selector => {
+      try {
+        const elements = doc.querySelectorAll(selector);
+        Array.from(elements).forEach(element => {
+          // Only remove if it's not a main content container
+          if (!this.isMainContentContainer(element)) {
+            element.parentNode?.removeChild(element);
+          }
+        });
+      } catch (error) {
+        // Selector might not be supported, continue
+      }
+    });
+  }
+
+  /**
+   * Check if element is a main content container that should be preserved
+   */
+  private isMainContentContainer(element: Element): boolean {
+    const tag = element.tagName.toLowerCase();
+    const className = element.className.toLowerCase();
+    const id = element.id.toLowerCase();
+    
+    // Preserve semantic content elements
+    if (['main', 'article', 'section'].includes(tag)) {
+      return true;
+    }
+    
+    // Preserve elements with content-indicating names
+    const contentIndicators = ['content', 'main', 'article', 'post', 'entry', 'text'];
+    return contentIndicators.some(indicator => 
+      className.includes(indicator) || id.includes(indicator)
+    );
   }
 
   /**
@@ -306,7 +358,7 @@ export class HtmlFilter {
       totalWeight += this.metricWeights.linkDensity; // Weight is added, but value is subtracted
     }
     if (this.metricConfig.tagWeight) {
-      const tagWeight = this.tagWeights[metrics.tagName] || 0.5; // Default weight for unknown tags
+      const tagWeight = this.tagImportance[metrics.tagName] || 0.5; // Default weight for unknown tags
       score += tagWeight * this.metricWeights.tagWeight;
       totalWeight += this.metricWeights.tagWeight;
     }
