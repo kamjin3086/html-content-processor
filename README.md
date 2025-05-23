@@ -119,7 +119,7 @@ useBuiltinPlugins(); // Includes ad-remover, social-remover, markdown-cleaner
 // Create custom plugin
 const myPlugin = {
   name: 'custom-filter',
-  version: '1.0.3',
+  version: '1.0.4',
   filter: (html, context) => {
     return html.replace(/unwanted-pattern/g, '');
   }
