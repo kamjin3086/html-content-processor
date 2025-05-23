@@ -1,97 +1,183 @@
-import { HtmlFilter } from './html-filter';
-import { DefaultMarkdownGenerator, MarkdownGeneratorOptions } from './markdown-generator';
-import { Html2TextOptions, MarkdownGenerationResult } from './types';
-
 /**
- * Example: How to use the HtmlFilter class to filter HTML content
+ * HTML Filter Strategy Library
+ * 
+ * A comprehensive library for cleaning, filtering, and converting HTML content
+ * to Markdown with advanced customization options, presets, and plugin support.
+ * 
+ * @version 1.0.0
+ * @author HTML Filter Strategy Team
+ * @license MIT
  */
 
-// Create an HtmlFilter instance with a more lenient configuration
-// Lower threshold, reduce minimum word count requirement, use dynamic threshold
-// Modified to use configuration parameters based on the Python version
-const filter = new HtmlFilter(2, 'dynamic', 0.48);
+// Core classes and components
+export { HtmlProcessor } from './html-processor';
+export { HtmlFilter } from './html-filter';
+export { DefaultMarkdownGenerator } from './markdown-generator';
 
-// Logging function for debugging
-function logDebug(message: string, data?: any) {
-  if (typeof console !== 'undefined') {
-    if (data) {
-      console.log(`[HTMLFilter] ${message}`, data);
-    } else {
-      console.log(`[HTMLFilter] ${message}`);
-    }
-  }
-}
+// Type definitions
+export {
+  ProcessorOptions,
+  FilterOptions,
+  ConverterOptions,
+  ConvertOptions,
+  FilterResult,
+  MarkdownResult,
+  FilterMetadata,
+  MarkdownMetadata,
+  Plugin,
+  PluginContext,
+  PresetName,
+  ProcessorError,
+  FilterError,
+  ConversionError,
+  PluginError,
+  // Legacy types for backward compatibility
+  MarkdownGenerationResult,
+  Html2TextOptions
+} from './types';
+
+// Convenience functions
+export {
+  htmlToMarkdown,
+  htmlToMarkdownWithCitations,
+  htmlToText,
+  cleanHtml,
+  extractContent,
+  htmlToArticleMarkdown,
+  htmlToBlogMarkdown,
+  htmlToNewsMarkdown,
+  strictCleanHtml,
+  gentleCleanHtml,
+  createProcessor
+} from './convenience-api';
+
+// Presets management
+export {
+  presets,
+  getPreset,
+  getPresetNames,
+  hasPreset,
+  mergeWithPreset
+} from './presets';
+
+// Plugin system
+export {
+  usePlugin,
+  removePlugin,
+  getPlugin,
+  hasPlugin,
+  getAllPlugins,
+  getPluginNames,
+  clearPlugins,
+  getPluginStats,
+  builtinPlugins,
+  useBuiltinPlugins
+} from './plugin-manager';
+
+// Import everything for the default export
+import { HtmlProcessor } from './html-processor';
+import { HtmlFilter } from './html-filter';
+import { DefaultMarkdownGenerator, MarkdownGeneratorOptions } from './markdown-generator';
+import { MarkdownGenerationResult } from './types';
+import {
+  htmlToMarkdown as newHtmlToMarkdown,
+  htmlToMarkdownWithCitations as newHtmlToMarkdownWithCitations,
+  htmlToText,
+  cleanHtml,
+  extractContent,
+  htmlToArticleMarkdown,
+  htmlToBlogMarkdown,
+  htmlToNewsMarkdown,
+  strictCleanHtml,
+  gentleCleanHtml,
+  createProcessor
+} from './convenience-api';
+import { presets, getPreset } from './presets';
+import {
+  usePlugin,
+  removePlugin,
+  getAllPlugins,
+  useBuiltinPlugins
+} from './plugin-manager';
+
+// Legacy filter instance for backward compatibility
+const legacyFilter = new HtmlFilter(2, 'dynamic', 0.48);
 
 /**
- * Example function: Filters HTML content and returns the result as an array.
+ * @deprecated Use HtmlProcessor.from(html).filter().toArray() instead
+ * Legacy function: Filters HTML content and returns the result as an array
  * @param html Input HTML string
  * @returns Array of filtered HTML fragments
  */
 function filterHtmlToArray(html: string): string[] {
   try {
     if (!html) {
-      logDebug('Input is empty, returning empty array');
+      console.log('[HTMLFilter] Input is empty, returning empty array');
       return [];
     }
     
-    const result = filter.filterContent(html);
+    const result = legacyFilter.filterContent(html);
     
     if (!result || result.length === 0) {
-      logDebug('No content after filtering, returning original HTML');
-      return [html]; // Return original HTML in an array if filtering results in nothing
+      console.log('[HTMLFilter] No content after filtering, returning original HTML');
+      return [html];
     }
     
-    logDebug(`Filtering successful, ${result.length} fragments obtained`);
+    console.log(`[HTMLFilter] Filtering successful, ${result.length} fragments obtained`);
     return result;
-  } catch (error) {
-    console.error('HTML filtering failed:', error);
-    return html ? [html] : []; // Return original HTML in an array on error
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('HTML filtering failed:', errorMessage);
+    return html ? [html] : [];
   }
 }
 
 /**
- * Example function: Filters HTML content and returns a single string result.
+ * @deprecated Use HtmlProcessor.from(html).filter().toString() instead
+ * Legacy function: Filters HTML content and returns a single string result
  * @param html Input HTML string
  * @returns Concatenated HTML string after filtering
  */
 function filterHtmlToString(html: string): string {
   try {
     if (!html) {
-      logDebug('Input is empty, returning empty string');
+      console.log('[HTMLFilter] Input is empty, returning empty string');
       return '';
     }
     
-    const filteredHtml = filter.filterContentAsString(html);
+    const filteredHtml = legacyFilter.filterContentAsString(html);
     
     if (!filteredHtml) {
-      logDebug('No content after filtering, returning original HTML');
-      return html; // Return original HTML if filtering results in nothing
+      console.log('[HTMLFilter] No content after filtering, returning original HTML');
+      return html;
     }
     
-    logDebug(`Filtering successful, string result length: ${filteredHtml.length}`);
+    console.log(`[HTMLFilter] Filtering successful, string result length: ${filteredHtml.length}`);
     return filteredHtml;
-  } catch (error) {
-    console.error('HTML filtering failed:', error);
-    return html || ''; // Return original HTML on error
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('HTML filtering failed:', errorMessage);
+    return html || '';
   }
 }
 
 /**
- * Example function: Converts HTML to Markdown.
+ * @deprecated Use HtmlProcessor.from(html).withBaseUrl(baseUrl).toMarkdown() instead
+ * Legacy function: Converts HTML to Markdown
  * @param html Input HTML string
  * @param options Markdown generation options
  * @param baseUrl Base URL for resolving relative links
  * @param citations Whether to include citations
  * @returns Markdown generation result object
  */
-function htmlToMarkdown(
+function legacyHtmlToMarkdown(
   html: string, 
   options?: MarkdownGeneratorOptions, 
   baseUrl: string = '',
   citations: boolean = true
 ): MarkdownGenerationResult {
   if (!html) {
-    logDebug('Input is empty for Markdown conversion');
+    console.log('[HTMLFilter] Input is empty for Markdown conversion');
     return {
       rawMarkdown: '',
       markdownWithCitations: '',
@@ -101,45 +187,49 @@ function htmlToMarkdown(
     };
   }
   
-  const mdGenerator = new DefaultMarkdownGenerator(filter, options);
+  const mdGenerator = new DefaultMarkdownGenerator(legacyFilter, options);
   const result = mdGenerator.generateMarkdown(html, baseUrl, options, null, citations);
-  logDebug('Markdown conversion complete');
+  console.log('[HTMLFilter] Markdown conversion complete');
   return result;
 }
 
 /**
- * Example function: Converts HTML to Markdown with citations.
+ * @deprecated Use htmlToMarkdownWithCitations() instead
+ * Legacy function: Converts HTML to Markdown with citations
  * @param html Input HTML string
  * @param baseUrl Base URL for resolving relative links
  * @returns Markdown text with citations
  */
-function htmlToMarkdownWithCitations(html: string, baseUrl: string = ''): string {
-  const result = htmlToMarkdown(html, undefined, baseUrl, true);
+function legacyHtmlToMarkdownWithCitations(html: string, baseUrl: string = ''): string {
+  const result = legacyHtmlToMarkdown(html, undefined, baseUrl, true);
   return result.markdownWithCitations + result.referencesMarkdown;
 }
 
 /**
- * Example function: Converts HTML to plain text Markdown.
+ * @deprecated Use htmlToText() instead
+ * Legacy function: Converts HTML to plain text Markdown
  * @param html Input HTML string
  * @returns Converted Markdown text
  */
 function htmlToPlainMarkdown(html: string): string {
-  const result = htmlToMarkdown(html, { ignoreLinks: true, ignoreImages: true });
+  const result = legacyHtmlToMarkdown(html, { ignoreLinks: true, ignoreImages: true });
   return result.rawMarkdown;
 }
 
 /**
- * Example function: Converts HTML to concise Markdown (fitMarkdown).
+ * @deprecated Use htmlToMarkdown() instead
+ * Legacy function: Converts HTML to concise Markdown (fitMarkdown)
  * @param html Input HTML string
  * @returns Concise Markdown text
  */
 function htmlToFitMarkdown(html: string): string {
-  const result = htmlToMarkdown(html);
-  return result.fitMarkdown || result.rawMarkdown; // Fallback to rawMarkdown if fitMarkdown is empty
+  const result = legacyHtmlToMarkdown(html);
+  return result.fitMarkdown || result.rawMarkdown;
 }
 
 /**
- * Debug function: Compares HTML before and after filtering.
+ * @deprecated Use HtmlProcessor debug methods instead
+ * Legacy debug function: Compares HTML before and after filtering
  * @param html Original HTML
  * @returns Object containing original and filtered HTML, and stats
  */
@@ -160,79 +250,138 @@ function debugFilterComparison(html: string) {
       filteredLength: filteredLength,
       reductionPercent: reductionPercent
     };
-  } catch (error: any) {
-    console.error('Debug comparison failed:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Debug comparison failed:', errorMessage);
     return {
       original: html,
       filtered: '',
       success: false,
-      error: error.message
+      error: errorMessage
     };
   }
 }
 
-// API object creation
-const htmlFilterAPI = {
-  // Classes
+// Legacy API object for backward compatibility
+const legacyAPI = {
+  // Legacy classes
   HtmlFilter,
   DefaultMarkdownGenerator,
   
-  // Main functions
+  // Legacy main functions
   filterHtmlToArray,
   filterHtmlToString,
-  htmlToMarkdown,
-  htmlToMarkdownWithCitations,
+  htmlToMarkdown: legacyHtmlToMarkdown,
+  htmlToMarkdownWithCitations: legacyHtmlToMarkdownWithCitations,
   htmlToPlainMarkdown,
   htmlToFitMarkdown,
   
-  // Aliases for convenience
+  // Legacy aliases
   toArray: filterHtmlToArray,
   toString: filterHtmlToString,
-  toMarkdown: htmlToMarkdown,
-  toMarkdownWithRefs: htmlToMarkdownWithCitations,
+  toMarkdown: legacyHtmlToMarkdown,
+  toMarkdownWithRefs: legacyHtmlToMarkdownWithCitations,
   toPlainMarkdown: htmlToPlainMarkdown,
   toFitMarkdown: htmlToFitMarkdown,
   
   // Debug function
   debugFilterComparison,
   
-  // Internal API (pre-configured filter instance for direct use)
-  filter, 
+  // Internal API (pre-configured filter instance)
+  filter: legacyFilter, 
   
   // Version information
-  version: '0.0.1'
+  version: '1.0.0'
 };
 
-// Export functions for use in other modules
+// Export legacy functions for backward compatibility
 export {
-  HtmlFilter,
-  DefaultMarkdownGenerator,
   filterHtmlToArray,
   filterHtmlToString,
-  htmlToMarkdown,
-  htmlToMarkdownWithCitations,
+  legacyHtmlToMarkdown as htmlToMarkdownLegacy,
+  legacyHtmlToMarkdownWithCitations as htmlToMarkdownWithCitationsLegacy,
   htmlToPlainMarkdown,
   htmlToFitMarkdown,
   debugFilterComparison
 };
 
-// Default export for all APIs
-export default htmlFilterAPI;
-
-// Example: If this file is run directly (e.g., in a browser context)
-if (typeof window !== 'undefined') {
-  // Add a global function for easy testing in the browser console
-  (window as any).htmlFilter = htmlFilterAPI;
-
-  logDebug('HTMLFilter loaded, version: ' + htmlFilterAPI.version);
+// Default export: New API with backward compatibility
+const htmlFilterAPI = {
+  // New API - Main processor class
+  HtmlProcessor,
   
-  // Add a helper function to call API methods by name
-  (window as any).callHtmlFilter = function(methodName: string, ...args: any[]) {
-    if (methodName in htmlFilterAPI && typeof (htmlFilterAPI as any)[methodName] === 'function') {
-      return (htmlFilterAPI as any)[methodName](...args);
-    } else {
-      console.error(`Method ${methodName} does not exist or is not a function`);
-      return null;
+  // New API - Convenience functions
+  htmlToMarkdown: newHtmlToMarkdown,
+  htmlToMarkdownWithCitations: newHtmlToMarkdownWithCitations,
+  htmlToText,
+  cleanHtml,
+  extractContent,
+  createProcessor,
+  
+  // New API - Preset functions
+  htmlToArticleMarkdown,
+  htmlToBlogMarkdown,
+  htmlToNewsMarkdown,
+  strictCleanHtml,
+  gentleCleanHtml,
+  
+  // New API - Plugin system
+  usePlugin,
+  removePlugin,
+  getAllPlugins,
+  useBuiltinPlugins,
+  
+  // New API - Presets
+  presets,
+  getPreset,
+  
+  // Legacy API classes
+  HtmlFilter,
+  DefaultMarkdownGenerator,
+  
+  // Legacy functions with legacy prefix to avoid conflicts
+  filterHtmlToArray,
+  filterHtmlToString,
+  htmlToPlainMarkdown,
+  htmlToFitMarkdown,
+  debugFilterComparison,
+  
+  // Legacy aliases
+  toArray: filterHtmlToArray,
+  toString: filterHtmlToString,
+  toMarkdown: legacyHtmlToMarkdown,
+  toMarkdownWithRefs: legacyHtmlToMarkdownWithCitations,
+  toPlainMarkdown: htmlToPlainMarkdown,
+  toFitMarkdown: htmlToFitMarkdown,
+  
+  // Internal API (pre-configured filter instance)
+  filter: legacyFilter, 
+  
+  // Legacy API namespace for explicit legacy access
+  legacy: legacyAPI,
+  
+  // Version and metadata
+  version: '1.0.0',
+  apiVersion: 'v1'
+};
+
+// Browser global registration
+if (typeof window !== 'undefined') {
+  (window as any).htmlFilter = htmlFilterAPI;
+  (window as any).HtmlProcessor = HtmlProcessor;
+
+  console.log(`[HTMLFilter] Library loaded successfully - Version: ${htmlFilterAPI.version}`);
+  console.log('[HTMLFilter] New API: Use HtmlProcessor class or convenience functions');
+  console.log('[HTMLFilter] Legacy API: Available for backward compatibility');
+  
+  // Helper function for browser console testing
+  (window as any).testHtmlFilter = function(html: string, preset?: string) {
+    if (preset) {
+      return createProcessor({ preset: preset as any }).filter().toMarkdown();
     }
+    return newHtmlToMarkdown(html);
   };
-} 
+}
+
+// Default export
+export default htmlFilterAPI; 

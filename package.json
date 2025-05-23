@@ -1,7 +1,7 @@
 {
-  "name": "html-filter-strategy",
-  "version": "0.0.1",
-  "description": "A tool for cleaning and filtering HTML content, removing irrelevant parts, preserving core structure and text, and supporting Markdown conversion.",
+  "name": "html-content-processor",
+  "version": "1.0.0",
+  "description": "A professional library for processing, cleaning, filtering, and converting HTML content to Markdown. Features advanced customization options, presets, plugin support, fluent API, and TypeScript integration for reliable content extraction.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -12,34 +12,50 @@
   },
   "keywords": [
     "html",
-    "filter",
-    "pruning",
     "content",
+    "processor",
+    "filter",
     "extract",
     "clean",
-    "readability",
     "markdown",
-    "conversion"
+    "conversion",
+    "typescript",
+    "fluent-api",
+    "presets",
+    "plugins",
+    "article-extraction",
+    "content-processing",
+    "html-to-markdown",
+    "web-scraping",
+    "content-filtering",
+    "html-processor",
+    "content-extractor"
   ],
-  "author": "",
+  "author": "HTML Content Processor Team",
   "license": "MIT",
   "devDependencies": {
+    "copy-webpack-plugin": "^11.0.0",
+    "jsdom": "^26.1.0",
+    "ts-loader": "^9.5.0",
     "typescript": "^4.9.5",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1",
-    "ts-loader": "^9.5.0",
-    "copy-webpack-plugin": "^11.0.0"
+    "webpack-dev-server": "^4.15.1"
   },
   "files": [
-    "dist/**/*"
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kamjin3086/html-filter-strategy.git"
+    "url": "git+https://github.com/kamjin3086/html-content-processor.git"
   },
   "bugs": {
-    "url": "https://github.com/kamjin3086/html-filter-strategy/issues"
+    "url": "https://github.com/kamjin3086/html-content-processor/issues"
   },
-  "homepage": "https://github.com/kamjin3086/html-filter-strategy#readme"
-} 
+  "homepage": "https://github.com/kamjin3086/html-content-processor#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
