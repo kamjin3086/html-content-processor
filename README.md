@@ -1,8 +1,8 @@
-<p align="right">
+# HTML Content Processor
+
+<p align="left">
 English | <a href="README.zh-CN.md">简体中文</a>
 </p>
-
-# HTML Content Processor
 
 A modern TypeScript library for cleaning, filtering, and converting HTML content to Markdown with intelligent content extraction. Supports cross-environment execution (Browser/Node.js) with automatic page type detection.
 
