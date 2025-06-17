@@ -1,8 +1,9 @@
-<p align="right">
-<a href="README.md">English</a> | 简体中文
-</p>
 
 # HTML 内容处理器
+
+<p align="left">
+<a href="README.md">English</a> | 简体中文
+</p>
 
 一个现代的 TypeScript 库，用于清理、过滤并将 HTML 内容转换为 Markdown，并具备智能内容提取功能。支持浏览器和 Node.js 跨环境执行，并自动检测页面类型。
 
